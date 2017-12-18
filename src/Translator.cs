@@ -55,8 +55,8 @@ namespace Pytocs
             var stm = par.Parse();
             TranslateModuleStatements(stm, null, output);
         }
-
-        public void TranslateModuleStatements(IEnumerable<Statement> stm, State moduleScope, string outputFileName)
+        
+        public void TranslateModuleStatements(IEnumerable<Statement> stm, Analyzer analyzer, string outputFileName)
         {
             TextWriter writer;
             try
@@ -70,8 +70,8 @@ namespace Pytocs
             }
             try
             {
-                TranslateModuleStatements(stm, moduleScope, writer);
-            }
+                TranslateModuleStatements(stm, analyzer, writer);
+        }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
@@ -79,11 +79,11 @@ namespace Pytocs
             }
         }
 
-        public void TranslateModuleStatements(IEnumerable<Statement> stm, State moduleScope, TextWriter output)
+        public void TranslateModuleStatements(IEnumerable<Statement> stm, Analyzer analyzer, TextWriter output)
         {
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, nmspace, Path.GetFileNameWithoutExtension(moduleName));
-            var xlt = new ModuleTranslator(moduleScope, gen);
+            var xlt = new ModuleTranslator(analyzer, gen);
             xlt.Translate(stm);
             var pvd = new CSharpCodeProvider();
             pvd.GenerateCodeFromCompileUnit(unt, output, new CodeGeneratorOptions { });

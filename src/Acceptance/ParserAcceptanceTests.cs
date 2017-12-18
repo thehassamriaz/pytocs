@@ -33,12 +33,13 @@ namespace Pytocs.Acceptance
     public class ParserAcceptanceTests
     {
         private static readonly string nl = Environment.NewLine;
-        private State scope;
+
+        private Analyzer analyzer;
 
         [SetUp]
         public void Setup()
         {
-            this.scope = new State(null, State.StateType.MODULE);
+            this.analyzer = null;
         }
 
         private string XlatModule(string pyModule)
@@ -49,7 +50,7 @@ namespace Pytocs.Acceptance
             var stm = par.Parse(); ;
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, "test", "testModule");
-            var xlt = new ModuleTranslator(scope, gen);
+            var xlt = new ModuleTranslator(analyzer, gen);
             xlt.Translate(stm);
 
             var pvd = new CSharpCodeProvider();

@@ -33,11 +33,9 @@ namespace Pytocs.Translate
     {
         private static readonly string nl = Environment.NewLine;
 
-        private State scope;
 
-        public void Setup()
+        public void  Setup()
         {
-            scope = new State(null, State.StateType.MODULE);
         }
 
         private string XlatStmts(string pyStmt)
@@ -49,8 +47,8 @@ namespace Pytocs.Translate
             var stm = par.stmt();
             var gen = new CodeGenerator(new CodeCompileUnit(), "", "module");
             gen.SetCurrentMethod(new CodeMemberMethod());
-            var xlt = new StatementTranslator(gen, new SymbolGenerator(), new HashSet<string>());
-            stm[0].Accept(xlt);
+            var xlt = new StatementTranslator(gen, null, new SymbolGenerator(), new HashSet<string>());
+            stm.Accept(xlt);
             var pvd = new CSharpCodeProvider();
             var writer = new StringWriter();
             foreach (CodeStatement csStmt in gen.Scope)
@@ -74,8 +72,8 @@ namespace Pytocs.Translate
             var stm = par.stmt();
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, "test", "testModule");
-            var xlt = new StatementTranslator(gen, new SymbolGenerator(), new HashSet<string>());
-            stm[0].Accept(xlt);
+            var xlt = new StatementTranslator(gen, null, new SymbolGenerator(), new HashSet<string>());
+            stm.Accept(xlt);
             var pvd = new CSharpCodeProvider();
             var writer = new StringWriter();
             foreach (CodeNamespace ns in unt.Namespaces)
@@ -117,8 +115,8 @@ namespace Pytocs.Translate
             var stm = par.stmt();
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, "test", "testModule");
-            var xlt = new StatementTranslator(gen, new SymbolGenerator(), new HashSet<string>());
-            stm[0].Accept(xlt);
+            var xlt = new StatementTranslator(gen, null, new SymbolGenerator(), new HashSet<string>());
+            stm.Accept(xlt);
             var pvd = new CSharpCodeProvider();
             var writer = new StringWriter();
             foreach (CodeNamespace ns in unt.Namespaces)
@@ -1341,7 +1339,7 @@ c.de = ""f"";
         
         // method comment
         public virtual object method() {
-        }
+    }
     }
 }
 ";

@@ -27,12 +27,12 @@ namespace Pytocs.Translate
 {
     public class ModuleTranslator : StatementTranslator
     {
-        private State scope;
+        private Analyzer analyzer;
         private CodeGenerator gen;
 
-        public ModuleTranslator(State scope, CodeGenerator gen) : base(gen, new SymbolGenerator(), new HashSet<string>())
+        public ModuleTranslator(Analyzer analyzer, CodeGenerator gen) : base(gen, analyzer, new SymbolGenerator(), new HashSet<string>())
         {
-            this.scope = scope;
+            this.analyzer = analyzer;
             this.gen = gen;
         }
 

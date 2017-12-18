@@ -32,6 +32,7 @@ namespace Pytocs.Translate
     public class MethodGenerator
     {
         protected FunctionDef f;
+        protected Analyzer analyzer;
         protected string fnName;
         protected List<Parameter> args;
         private bool isStatic;
@@ -42,7 +43,7 @@ namespace Pytocs.Translate
         private SymbolGenerator gensym;
         protected HashSet<string> globals;
 
-        public MethodGenerator(FunctionDef f, string fnName, List<Parameter> args, bool isStatic, CodeGenerator gen)
+        public MethodGenerator(FunctionDef f, Analyzer analyzer, string fnName, List<Parameter> args, bool isStatic, CodeGenerator gen)
         {
             this.f = f;
             this.fnName = fnName;
@@ -52,7 +53,7 @@ namespace Pytocs.Translate
             this.gensym = new SymbolGenerator();
             this.xlat = new ExpTranslator(gen, gensym);
             this.globals = new HashSet<string>();
-            this.stmtXlat = new StatementTranslator(gen, gensym, globals);
+            this.stmtXlat = new StatementTranslator(gen, analyzer, gensym, globals);
         }
 
         public CodeMemberMethod Generate()
@@ -135,6 +136,8 @@ namespace Pytocs.Translate
             }
             else
             {
+                var a = analyzer?.References[ta.Id];
+                var ff = analyzer?.References[f];
                 parameterType = new CodeTypeReference(typeof(object));
             }
             return new CodeParameterDeclarationExpression

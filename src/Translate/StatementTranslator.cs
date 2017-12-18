@@ -29,6 +29,7 @@ namespace Pytocs.Translate
     public class StatementTranslator : IStatementVisitor
     {
         private CodeGenerator gen;
+        private Analyzer analyzer;
         private ExpTranslator xlat;
         private SymbolGenerator gensym;
         private ClassDef currentClass;
@@ -37,9 +38,10 @@ namespace Pytocs.Translate
         private HashSet<string> globals;
         private CodeConstructor classConstructor;
 
-        public StatementTranslator(CodeGenerator gen, SymbolGenerator gensym, HashSet<string> globals)
+        public StatementTranslator(CodeGenerator gen, Analyzer analyzer, SymbolGenerator gensym, HashSet<string> globals)
         {
             this.gen = gen;
+            this.analyzer = analyzer;
             this.gensym = gensym;
             this.xlat = new ExpTranslator(gen, gensym);
             this.properties = new Dictionary<Decorated, PropertyDefinition>();
@@ -51,7 +53,7 @@ namespace Pytocs.Translate
             var baseClasses = c.args.Select(a => GenerateBaseClassName(a)).ToList();
             var comments = ConvertFirstStringToComments(c.body.stmts);
             var gensym = new SymbolGenerator();
-            var stmtXlt = new StatementTranslator(gen, gensym, new HashSet<string>());
+            var stmtXlt = new StatementTranslator(gen, analyzer, gensym, new HashSet<string>());
             stmtXlt.currentClass = c;
             stmtXlt.properties = FindProperties(c.body.stmts);
             var csClass = gen.Class(c.name.Name, baseClasses, () => c.body.Accept(stmtXlt));
@@ -93,7 +95,7 @@ namespace Pytocs.Translate
             return result;
         }
 
-        private static PropertyDefinition EnsurePropertyDefinition(Dictionary<string, PropertyDefinition> propdefs, FunctionDef def)
+        private static PropertyDefinition  EnsurePropertyDefinition(Dictionary<string, PropertyDefinition> propdefs, FunctionDef def)
         {
             if (!propdefs.TryGetValue(def.name.Name, out var propdef))
             {
@@ -132,7 +134,7 @@ namespace Pytocs.Translate
             var suiteStmt = statements[i] as SuiteStatement;
             if (suiteStmt == null)
                 return nothing;
-            var expStm = suiteStmt.stmts[0] as ExpStatement;
+            var expStm  = suiteStmt.stmts[0] as ExpStatement;
             if (expStm == null)
                 return nothing;
             var str = expStm.Expression as Str;
@@ -428,7 +430,7 @@ namespace Pytocs.Translate
 
             if (this.gen.CurrentMember != null)
             {
-                var lgen = new LambdaBodyGenerator(f, f.parameters, true, gen);
+                var lgen = new LambdaBodyGenerator(f, analyzer, f.parameters, true, gen);
                 var def = lgen.GenerateLambdaVariable(f);
                 var meth = lgen.Generate();
                 def.InitExpression = gen.Lambda(
@@ -449,7 +451,7 @@ namespace Pytocs.Translate
                     if (fnName == "__init__")
                     {
                         // Magic function __init__ is a ctor.
-                        mgen = new ConstructorGenerator(f, adjustedPs, gen);
+                        mgen = new ConstructorGenerator(f, analyzer, adjustedPs, gen);
                     }
                     else
                     {
@@ -458,17 +460,17 @@ namespace Pytocs.Translate
                             attrs = MemberAttributes.Override;
                             fnName = "ToString";
                         }
-                        mgen = new MethodGenerator(f, fnName, adjustedPs, false, gen);
+                        mgen = new MethodGenerator(f, analyzer, fnName, adjustedPs, false, gen);
                     }
                 }
                 else
                 {
-                    mgen = new MethodGenerator(f, f.name.Name, f.parameters, true, gen);
+                    mgen = new MethodGenerator(f, analyzer, f.name.Name, f.parameters, true, gen);
                 }
             }
             else
             {
-                mgen = new MethodGenerator(f, f.name.Name, f.parameters, true, gen);
+                mgen = new MethodGenerator(f, analyzer, f.name.Name, f.parameters, true, gen);
             }
             CodeMemberMethod m = mgen.Generate();
             m.Attributes |= attrs;
@@ -644,7 +646,7 @@ namespace Pytocs.Translate
         private void GeneratePropertyGetter(Decorated getter)
         {
             var def = (FunctionDef)getter.Statement;
-            var mgen = new MethodGenerator(def, null, def.parameters, false, gen);
+            var mgen = new MethodGenerator(def, analyzer, null, def.parameters, false, gen);
             var comments = ConvertFirstStringToComments(def.body.stmts);
             gen.CurrentMemberComments.AddRange(comments);
             mgen.Xlat(def.body);
@@ -655,7 +657,7 @@ namespace Pytocs.Translate
             if (setter == null)
                 return;
             var def = (FunctionDef)setter.Statement;
-            var mgen = new MethodGenerator(def, null, def.parameters, false, gen);
+            var mgen = new MethodGenerator(def, analyzer, null, def.parameters, false, gen);
             var comments = ConvertFirstStringToComments(def.body.stmts);
             gen.CurrentMemberComments.AddRange(comments);
             mgen.Xlat(def.body);
@@ -703,7 +705,7 @@ namespace Pytocs.Translate
             foreach (var name in g.names)
             {
                 globals.Add(name.Name);
-            }
+        }
         }
 
         public void VisitNonLocal(NonlocalStatement n)
