@@ -110,12 +110,12 @@ namespace Pytocs.TypeInference
             "ZeroDivisionError"
         };
 
-        ClassType newClass(string name, State table)
+        ClassType newClass(string name, NameScope table)
         {
             return newClass(name, table, null);
         }
 
-        ClassType newClass(string name, State table,
+        ClassType newClass(string name, NameScope table,
                            ClassType superClass, params ClassType[] moreSupers)
         {
             var path = table.ExtendPath(analyzer, name);
@@ -132,7 +132,7 @@ namespace Pytocs.TypeInference
             return new ModuleType(name, null, name, analyzer.GlobalTable);
         }
 
-        ClassType newException(string name, State t)
+        ClassType newException(string name, NameScope t)
         {
             return newClass(name, t, BaseException);
         }
@@ -184,7 +184,7 @@ namespace Pytocs.TypeInference
             protected Builtins outer;
             protected string name;
             protected ModuleType module;
-            protected State table;  // the module's symbol table
+            protected NameScope table;  // the module's symbol table
 
             protected NativeModule(Builtins outer, string name)
             {
@@ -341,7 +341,7 @@ namespace Pytocs.TypeInference
         private void buildTypes()
         {
             new BuiltinsModule(this);
-            State bt = Builtin.Table;
+            NameScope bt = Builtin.Table;
 
             objectType = newClass("object", bt);
             BaseType = newClass("type", bt, objectType);
@@ -480,7 +480,7 @@ namespace Pytocs.TypeInference
 
         void buildTupleType()
         {
-            State bt = BaseTuple.Table;
+            NameScope bt = BaseTuple.Table;
             string[] tuple_methods = 
             {
                 "__add__", "__contains__", "__eq__", "__ge__", "__getnewargs__",
@@ -553,7 +553,7 @@ namespace Pytocs.TypeInference
 
         void buildNumTypes()
         {
-            State bft = DataType.Float.Table;
+            NameScope bft = DataType.Float.Table;
             string[] float_methods_num = {
                 "__abs__", "__add__", "__coerce__", "__div__", "__divmod__",
                 "__eq__", "__float__", "__floordiv__", "__format__",
@@ -569,7 +569,7 @@ namespace Pytocs.TypeInference
             {
                 bft.Insert(analyzer, m, numUrl(), newFunc(DataType.Float), BindingKind.METHOD).IsBuiltin = true;
             }
-            State bnt = DataType.Int.Table;
+            NameScope bnt = DataType.Int.Table;
             string[] num_methods_num = {
                 "__abs__", "__add__", "__and__",
                 "__class__", "__cmp__", "__coerce__", "__delattr__", "__div__",
@@ -593,7 +593,7 @@ namespace Pytocs.TypeInference
             bnt.Insert(analyzer, "hex", numUrl(), newFunc(DataType.Str), BindingKind.METHOD).IsBuiltin = true;
             bnt.Insert(analyzer, "conjugate", numUrl(), newFunc(DataType.Complex), BindingKind.METHOD).IsBuiltin = true;
 
-            State bct = DataType.Complex.Table;
+            NameScope bct = DataType.Complex.Table;
             string[] complex_methods = {
                 "__abs__", "__add__", "__div__", "__divmod__",
                 "__float__", "__floordiv__", "__format__", "__getformat__", "__int__",
@@ -677,7 +677,7 @@ namespace Pytocs.TypeInference
         void buildDictType()
         {
             string url = "datastructures.html#dictionaries";
-            State bt = BaseDict.Table;
+            NameScope bt = BaseDict.Table;
 
             bt.Insert(analyzer, "__getitem__", newTutUrl(url), newFunc(), BindingKind.METHOD).IsBuiltin = true;
             bt.Insert(analyzer, "__iter__", newTutUrl(url), newFunc(), BindingKind.METHOD).IsBuiltin = true;
@@ -710,7 +710,7 @@ namespace Pytocs.TypeInference
         void buildFileType()
         {
             string url = "stdtypes.html#bltin-file-objects";
-            State table = BaseFile.Table;
+            NameScope table = BaseFile.Table;
 
             string[] methods_unknown = {
                 "__enter__", "__exit__", "__iter__", "flush", "readinto", "truncate"
@@ -752,7 +752,7 @@ namespace Pytocs.TypeInference
 
         void buildFunctionType()
         {
-            State t = BaseFunction.Table;
+            NameScope t = BaseFunction.Table;
 
             foreach (string s in new[] { "func_doc", "__doc__", "func_name", "__name__", "__module__" })
             {
@@ -778,7 +778,7 @@ namespace Pytocs.TypeInference
         // so we can remove the per-instance attributes from NClassDef.
         void buildClassType()
         {
-            State t = BaseClass.Table;
+            NameScope t = BaseClass.Table;
 
             foreach (string s in new[] { "__name__", "__doc__", "__module__" })
             {
@@ -1284,7 +1284,7 @@ namespace Pytocs.TypeInference
 
                 ClassType timedelta = outer.Datetime_timedelta = outer.newClass("timedelta", table, outer.objectType);
                 addClass("timedelta", dtUrl("timedelta"), timedelta);
-                State tdtable = outer.Datetime_timedelta.Table;
+                NameScope tdtable = outer.Datetime_timedelta.Table;
                 tdtable.Insert(outer.analyzer, "min", dtUrl("timedelta"), timedelta, BindingKind.ATTRIBUTE).IsBuiltin = true;
                 tdtable.Insert(outer.analyzer, "max", dtUrl("timedelta"), timedelta, BindingKind.ATTRIBUTE).IsBuiltin = true;
                 tdtable.Insert(outer.analyzer, "resolution", dtUrl("timedelta"), timedelta, BindingKind.ATTRIBUTE).IsBuiltin = true;
@@ -1295,7 +1295,7 @@ namespace Pytocs.TypeInference
 
                 ClassType tzinfo = outer.Datetime_tzinfo = outer.newClass("tzinfo", table, outer.objectType);
                 addClass("tzinfo", dtUrl("tzinfo"), tzinfo);
-                State tztable = outer.Datetime_tzinfo.Table;
+                NameScope tztable = outer.Datetime_tzinfo.Table;
                 tztable.Insert(outer.analyzer, "utcoffset", dtUrl("tzinfo"), outer.newFunc(timedelta), BindingKind.METHOD).IsBuiltin = true;
                 tztable.Insert(outer.analyzer, "dst", dtUrl("tzinfo"), outer.newFunc(timedelta), BindingKind.METHOD).IsBuiltin = true;
                 tztable.Insert(outer.analyzer, "tzname", dtUrl("tzinfo"), outer.newFunc(DataType.Str), BindingKind.METHOD).IsBuiltin = true;
@@ -1303,7 +1303,7 @@ namespace Pytocs.TypeInference
 
                 ClassType date = outer.Datetime_date = outer.newClass("date", table, outer.objectType);
                 addClass("date", dtUrl("date"), date);
-                State dtable = outer.Datetime_date.Table;
+                NameScope dtable = outer.Datetime_date.Table;
                 dtable.Insert(outer.analyzer, "min", dtUrl("date"), date, BindingKind.ATTRIBUTE).IsBuiltin = true;
                 dtable.Insert(outer.analyzer, "max", dtUrl("date"), date, BindingKind.ATTRIBUTE).IsBuiltin = true;
                 dtable.Insert(outer.analyzer, "resolution", dtUrl("date"), timedelta, BindingKind.ATTRIBUTE).IsBuiltin = true;
@@ -1332,7 +1332,7 @@ namespace Pytocs.TypeInference
 
                 ClassType time = outer.Datetime_time = outer.newClass("time", table, outer.objectType);
                 addClass("time", dtUrl("time"), time);
-                State ttable = outer.Datetime_time.Table;
+                NameScope ttable = outer.Datetime_time.Table;
 
                 ttable.Insert(outer.analyzer, "min", dtUrl("time"), time, BindingKind.ATTRIBUTE).IsBuiltin = true;
                 ttable.Insert(outer.analyzer, "max", dtUrl("time"), time, BindingKind.ATTRIBUTE).IsBuiltin = true;
@@ -1357,7 +1357,7 @@ namespace Pytocs.TypeInference
 
                 ClassType datetime = outer.Datetime_datetime = outer.newClass("datetime", table, date, time);
                 addClass("datetime", dtUrl("datetime"), datetime);
-                State dttable = outer.Datetime_datetime.Table;
+                NameScope dttable = outer.Datetime_datetime.Table;
 
                 foreach (string c in new[] {"combine", "fromordinal", "fromtimestamp", "now",
                         "strptime", "today", "utcfromtimestamp", "utcnow"})
@@ -2001,7 +2001,7 @@ namespace Pytocs.TypeInference
             private void initOsPathModule()
             {
                 ModuleType m = outer.newModule("path");
-                State ospath = m.Table;
+                NameScope ospath = m.Table;
                 ospath.Path = "os.path";  // make sure global qnames are correct
 
                 update("path", newLibUrl("os.path.html#module-os.path"), m, BindingKind.MODULE);
@@ -2408,7 +2408,7 @@ namespace Pytocs.TypeInference
 
                 outer.BaseStruct = outer.newClass("Struct", table, outer.objectType);
                 addClass("Struct", liburl("struct-objects"), outer.BaseStruct);
-                State t = outer.BaseStruct.Table;
+                NameScope t = outer.BaseStruct.Table;
                 t.Insert(outer.analyzer, "pack", liburl("struct-objects"), outer.newFunc(DataType.Str), BindingKind.METHOD).IsBuiltin = true;
                 t.Insert(outer.analyzer, "pack_into", liburl("struct-objects"), outer.newFunc(), BindingKind.METHOD).IsBuiltin = true;
                 t.Insert(outer.analyzer, "unpack", liburl("struct-objects"), outer.newFunc(outer.newTuple()), BindingKind.METHOD).IsBuiltin = true;
@@ -2575,7 +2575,7 @@ namespace Pytocs.TypeInference
                 addClass("ZipImportError", liburl(), outer.newException("ZipImportError", table));
 
                 ClassType zipimporter = outer.newClass("zipimporter", table, outer.objectType);
-                State t = zipimporter.Table;
+                NameScope t = zipimporter.Table;
                 t.Insert(outer.analyzer, "find_module", liburl(), zipimporter, BindingKind.METHOD).IsBuiltin = true;
                 t.Insert(outer.analyzer, "get_code", liburl(), DataType.Unknown, BindingKind.METHOD).IsBuiltin = true;  // XXX:  code object
                 t.Insert(outer.analyzer, "get_data", liburl(), DataType.Unknown, BindingKind.METHOD).IsBuiltin = true;

@@ -14,7 +14,7 @@
 //  limitations under the License.
 #endregion
 
-using State = Pytocs.TypeInference.State;
+using NameScope = Pytocs.TypeInference.NameScope;
 
 namespace Pytocs.Types
 {
@@ -23,10 +23,10 @@ namespace Pytocs.Types
         public string name;
         public InstanceType canon;
 
-        public ClassType(string name, State parent, string path)
+        public ClassType(string name, NameScope parent, string path)
         {
             this.name = name;
-            this.Table = new State(parent, State.StateType.CLASS) { Type = this };
+            this.Table = new NameScope(parent, NameScope.StateType.CLASS) { Type = this };
             if (parent != null)
             {
                 Table.Path = path;
@@ -37,7 +37,7 @@ namespace Pytocs.Types
             }
         }
 
-        public ClassType(string name, State parent, string path, ClassType superClass)
+        public ClassType(string name, NameScope parent, string path, ClassType superClass)
             : this(name, parent, path)
         {
             if (superClass != null)

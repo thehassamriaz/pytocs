@@ -10,10 +10,10 @@ namespace Pytocs.TypeInference
         IStatementVisitor<DataType>,
         IExpVisitor<DataType>
     {
-        private State scope;
+        private NameScope scope;
         private Analyzer analyzer;
 
-        public TypeTransformer(State s, Analyzer analyzer)
+        public TypeTransformer(NameScope s, Analyzer analyzer)
         {
             this.scope = s;
             this.analyzer = analyzer;
@@ -83,7 +83,7 @@ namespace Pytocs.TypeInference
             else
             {
                 analyzer.addRef(a, targetType, bs);
-                return State.MakeUnion(bs);
+                return NameScope.MakeUnion(bs);
             }
         }
 
@@ -277,7 +277,7 @@ namespace Pytocs.TypeInference
 
             BindMethodAttrs(analyzer, func);
 
-            State funcTable = new State(func.env, State.StateType.FUNCTION);
+            NameScope funcTable = new NameScope(func.env, NameScope.StateType.FUNCTION);
             if (func.Table.Parent != null)
             {
                 funcTable.Path = func.Table.Parent.ExtendPath(analyzer, func.Definition.name.Name);
@@ -336,7 +336,7 @@ namespace Pytocs.TypeInference
             Analyzer analyzer,
             Node call,
             FunctionDef func,
-            State funcTable,
+            NameScope funcTable,
             List<Parameter> parameters,
             Identifier rest,
             Identifier restKw,
@@ -488,7 +488,7 @@ namespace Pytocs.TypeInference
             b.IsStatic = true;
         }
 
-        public void AddSpecialAttribute(State s, string name, DataType proptype)
+        public void AddSpecialAttribute(NameScope s, string name, DataType proptype)
         {
             Binding b = analyzer.CreateBinding(name, Builtins.newTutUrl("classes.html"), proptype, BindingKind.ATTRIBUTE);
             s.Update(name, b);
@@ -695,7 +695,7 @@ namespace Pytocs.TypeInference
 
         public DataType VisitLambda(Lambda lambda)
         {
-            State env = scope.getForwarding();
+            NameScope env = scope.getForwarding();
             var fun = new FunType(lambda, env);
             fun.Table.Parent = this.scope;
             fun.Table.Path = scope.ExtendPath(analyzer, "{lambda}");
@@ -706,7 +706,7 @@ namespace Pytocs.TypeInference
 
         public DataType VisitFunctionDef(FunctionDef f)
         {
-            State env = scope.getForwarding();
+            NameScope env = scope.getForwarding();
             FunType fun = new FunType(f, env);
             fun.Table.Parent = this.scope;
             fun.Table.Path = scope.ExtendPath(analyzer, f.name.Name);
@@ -716,7 +716,7 @@ namespace Pytocs.TypeInference
             analyzer.AddUncalled(fun);
 
             BindingKind funkind;
-            if (scope.stateType == State.StateType.CLASS)
+            if (scope.stateType == NameScope.StateType.CLASS)
             {
                 if ("__init__" == f.name.Name)
                 {
@@ -783,8 +783,8 @@ namespace Pytocs.TypeInference
         public DataType VisitIf(IfStatement i)
         {
             DataType type1, type2;
-            State s1 = scope.Clone();
-            State s2 = scope.Clone();
+            NameScope s1 = scope.Clone();
+            NameScope s2 = scope.Clone();
 
             // Ignore condition for now
             i.Test.Accept(this);
@@ -1078,7 +1078,7 @@ namespace Pytocs.TypeInference
                 analyzer.putRef(id, b);
                 analyzer.Resolved.Add(id);
                 analyzer.Unresolved.Remove(id);
-                return State.MakeUnion(b);
+                return NameScope.MakeUnion(b);
             }
             else if (id.Name == "True" || id.Name == "False")
             {

@@ -25,7 +25,7 @@ namespace Pytocs.TypeInference
     /// <summary>
     /// Implements a scope, which maps names to sets of bindings.
     /// </summary>
-    public class State
+    public class NameScope
     {
         public enum StateType
         {
@@ -38,13 +38,13 @@ namespace Pytocs.TypeInference
         }
 
         public IDictionary<string, ISet<Binding>> table = new Dictionary<string, ISet<Binding>>(0);
-        public State Parent { get; set; }      // all are non-null except global table
-        public State Forwarding { get; set; }  // link to the closest non-class scope, for lifting functions out
-        public List<State> supers;
+        public NameScope Parent { get; set; }      // all are non-null except global table
+        public NameScope Forwarding { get; set; }  // link to the closest non-class scope, for lifting functions out
+        public List<NameScope> supers;
         public ISet<string> globalNames;
         public StateType stateType;
 
-        public State(State parent, StateType type)
+        public NameScope(NameScope parent, StateType type)
         {
             this.Parent = parent;
             this.stateType = type;
@@ -60,7 +60,7 @@ namespace Pytocs.TypeInference
             }
         }
 
-        public State(State s)
+        public NameScope(NameScope s)
         {
             this.table = new Dictionary<string, ISet<Binding>>(s.table);
             this.Parent = s.Parent;
@@ -76,7 +76,7 @@ namespace Pytocs.TypeInference
         public DataType Type { get; set; } 
 
         // erase and overwrite this to s's contents
-        public void Overwrite(State s)
+        public void Overwrite(NameScope s)
         {
             this.table = s.table;
             this.Parent = s.Parent;
@@ -88,12 +88,12 @@ namespace Pytocs.TypeInference
             this.Path = s.Path;
         }
 
-        public State Clone()
+        public NameScope Clone()
         {
-            return new State(this);
+            return new NameScope(this);
         }
 
-        public void Merge(State other)
+        public void Merge(NameScope other)
         {
             foreach (var e2 in other.table)
             {
@@ -111,14 +111,14 @@ namespace Pytocs.TypeInference
             }
         }
 
-        public static State Merge(State state1, State state2)
+        public static NameScope Merge(NameScope state1, NameScope state2)
         {
             var ret = state1.Clone();
             ret.Merge(state2);
             return ret;
         }
 
-        public State getForwarding()
+        public NameScope getForwarding()
         {
             if (Forwarding != null)
             {
@@ -130,11 +130,11 @@ namespace Pytocs.TypeInference
             }
         }
 
-        public void addSuper(State sup)
+        public void addSuper(NameScope sup)
         {
             if (supers == null)
             {
-                supers = new List<State>();
+                supers = new List<NameScope>();
             }
             supers.Add(sup);
         }
@@ -281,7 +281,7 @@ namespace Pytocs.TypeInference
          * rule. The new MRO can be implemented, but will probably not introduce
          * much difference.
          */
-        private static ISet<State> looked = new HashSet<State>();    // circularity prevention
+        private static ISet<NameScope> looked = new HashSet<NameScope>();    // circularity prevention
 
         public ISet<Binding> LookupAttribute(string attr)
         {
@@ -300,7 +300,7 @@ namespace Pytocs.TypeInference
                 if (supers != null && supers.Count > 0)
                 {
                     looked.Add(this);
-                    foreach (State p in supers)
+                    foreach (NameScope p in supers)
                     {
                         b = p.LookupAttribute(attr);
                         if (b != null)
@@ -365,7 +365,7 @@ namespace Pytocs.TypeInference
         /// <summary>
         /// Find a symbol table of a certain type in the enclosing scopes.
         /// </summary>
-        public State getStateOfType(StateType type)
+        public NameScope getStateOfType(StateType type)
         {
             if (stateType == type)
             {
@@ -384,9 +384,9 @@ namespace Pytocs.TypeInference
         /**
          * Returns the global scope (i.e. the module scope for the current module).
          */
-        public State GetGlobalTable()
+        public NameScope GetGlobalTable()
         {
-            State result = getStateOfType(StateType.MODULE);
+            NameScope result = getStateOfType(StateType.MODULE);
             Debug.Assert(result != null, "Couldn't find global table.");
             return result;
         }
@@ -399,7 +399,7 @@ namespace Pytocs.TypeInference
         {
             if (IsGlobalName(name))
             {
-                State module = GetGlobalTable();
+                NameScope module = GetGlobalTable();
                 if (module != this)
                 {
                     return module.LookupLocal(name);
@@ -408,7 +408,7 @@ namespace Pytocs.TypeInference
             return null;
         }
 
-        public void putAll(State other)
+        public void putAll(NameScope other)
         {
             foreach (var de in other.table)
             {
@@ -482,12 +482,12 @@ namespace Pytocs.TypeInference
         public void BindByScope(Analyzer analyzer, Exp target, DataType rvalue)
         {
             BindingKind kind;
-            if (this.stateType == State.StateType.FUNCTION)
+            if (this.stateType == NameScope.StateType.FUNCTION)
             {
                 kind = BindingKind.VARIABLE;
             }
-            else if (this.stateType == State.StateType.CLASS ||
-                  this.stateType == State.StateType.INSTANCE)
+            else if (this.stateType == NameScope.StateType.CLASS ||
+                  this.stateType == NameScope.StateType.INSTANCE)
             {
                 kind = BindingKind.ATTRIBUTE;
             }
@@ -650,7 +650,7 @@ namespace Pytocs.TypeInference
             targetType.Table.Insert(analyzer, attr.FieldName.Name, attr, attrType, BindingKind.ATTRIBUTE);
         }
 
-        public static void TransformExprs(Analyzer analyzer, List<Slice> exprs, State s)
+        public static void TransformExprs(Analyzer analyzer, List<Slice> exprs, NameScope s)
         {
             var x = new TypeTransformer(s, analyzer);
             foreach (var e in exprs)
@@ -659,7 +659,7 @@ namespace Pytocs.TypeInference
             }
         }
 
-        public static DataType TransformExp(Analyzer analyzer, Exp n, State s)
+        public static DataType TransformExp(Analyzer analyzer, Exp n, NameScope s)
         {
             return n.Accept(new TypeTransformer(s, analyzer));
         }

@@ -14,7 +14,7 @@
 //  limitations under the License.
 #endregion
 
-using State = Pytocs.TypeInference.State;
+using NameScope = Pytocs.TypeInference.NameScope;
 
 namespace Pytocs.Types
 {
@@ -23,12 +23,12 @@ namespace Pytocs.Types
         public string name;
         public string qname;
 
-        public ModuleType(string name, string file, string qName, State parent)
+        public ModuleType(string name, string file, string qName, NameScope parent)
         {
             this.name = name;
             this.file = file;  // null for builtin modules
             this.qname = qName;
-            this.Table = new State(parent, State.StateType.MODULE);
+            this.Table = new NameScope(parent, NameScope.StateType.MODULE);
             Table.Path = qname;
             Table.Type = this;
         }

@@ -181,7 +181,7 @@
     <Compile Include="TypeInference\ILogger.cs" />
     <Compile Include="TypeInference\Options.cs" />
     <Compile Include="TypeInference\Progress.cs" />
-    <Compile Include="TypeInference\State.cs" />
+    <Compile Include="TypeInference\NameScope.cs" />
     <Compile Include="TypeInference\Statistics.cs" />
     <Compile Include="TypeInference\TypeStack.cs" />
     <Compile Include="Types\BoolType.cs" />

@@ -27,7 +27,7 @@ namespace Pytocs.Types
         public readonly FunctionDef Definition;
         public Lambda lambda;
         public ClassType Class = null;
-        public State env;
+        public NameScope env;
         public List<DataType> defaultTypes;       // types for default parameters (evaluated at def time)
 
         public FunType()
@@ -35,13 +35,13 @@ namespace Pytocs.Types
             this.Class = null;
         }
 
-        public FunType(FunctionDef func, State env)
+        public FunType(FunctionDef func, NameScope env)
         {
             this.Definition = func;
             this.env = env;
         }
 
-        public FunType(Lambda lambda, State env)
+        public FunType(Lambda lambda, NameScope env)
         {
             this.lambda = lambda;
             this.env = env;

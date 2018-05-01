@@ -15,7 +15,7 @@
 #endregion
 
 using System.Collections.Generic;
-using State = Pytocs.TypeInference.State;
+using NameScope = Pytocs.TypeInference.NameScope;
 
 namespace Pytocs.Types
 {
@@ -25,7 +25,7 @@ namespace Pytocs.Types
 
         public InstanceType(DataType c)
         {
-            Table.setStateType(State.StateType.INSTANCE);
+            Table.setStateType(NameScope.StateType.INSTANCE);
             Table.addSuper(c.Table);
             Table.Path = c.Table.Path;
             classType = c;

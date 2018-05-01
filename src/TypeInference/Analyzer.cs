@@ -30,12 +30,12 @@ namespace Pytocs.TypeInference
     {
         DataTypeFactory TypeFactory { get; }
         int CalledFunctions { get; set; }
-        State GlobalTable { get; }
+        NameScope GlobalTable { get; }
         HashSet<Name> Resolved { get; }
         HashSet<Name> Unresolved { get; }
         Dictionary<Node,List<Binding>> References { get; }
 
-        DataType LoadModule(List<Name> name, State state);
+        DataType LoadModule(List<Name> name, NameScope state);
         Module GetAstForFile(string file);
         string GetModuleQname(string file);
         IEnumerable<Binding> GetModuleBindings();
@@ -71,6 +71,7 @@ namespace Pytocs.TypeInference
         //public const string MODEL_LOCATION = "org/yinwang/pysonar/models";
         private List<string> loadedFiles = new List<string>();
         private List<Binding> allBindings = new List<Binding>();
+        private Dictionary<Node, Binding> bindingMap = new Dictionary<Node, Binding>();
         private Dictionary<string, List<Diagnostic>> semanticErrors = new Dictionary<string, List<Diagnostic>>();
         private Dictionary<string, List<Diagnostic>> parseErrors = new Dictionary<string, List<Diagnostic>>();
         private string cwd = null;
@@ -101,7 +102,7 @@ namespace Pytocs.TypeInference
             this.FileSystem = fs;
             this.logger = logger;
             this.TypeFactory = new DataTypeFactory(this);
-            this.GlobalTable = new State(null, State.StateType.GLOBAL);
+            this.GlobalTable = new NameScope(null, NameScope.StateType.GLOBAL);
             this.Resolved = new HashSet<Name>();
             this.Unresolved = new HashSet<Name>();
             this.References = new Dictionary<Node, List<Binding>>();
@@ -129,13 +130,13 @@ namespace Pytocs.TypeInference
 
         public DataTypeFactory TypeFactory { get; private set; }
         public int CalledFunctions { get; set; }
-        public State GlobalTable { get; private set; }
+        public NameScope GlobalTable { get; private set; }
         public HashSet<Name> Resolved { get; private set; }
         public HashSet<Name> Unresolved { get; private set; }
         public Builtins Builtins { get; private set; }
         public Dictionary<Node, List<Binding>> References { get; private set; }
 
-        public State ModuleTable = new State(null, State.StateType.GLOBAL);
+        public NameScope ModuleTable = new NameScope(null, NameScope.StateType.GLOBAL);
 
         /// <summary>
         /// Main entry to the analyzer
@@ -273,6 +274,8 @@ namespace Pytocs.TypeInference
         {
             return allBindings;
         }
+
+        public Dictionary<Node, Binding> Bindings => bindingMap;
 
         public IEnumerable<Binding> GetModuleBindings()
         {
@@ -516,7 +519,7 @@ namespace Pytocs.TypeInference
             return null;
         }
 
-        public DataType LoadModule(List<Name> name, State state)
+        public DataType LoadModule(List<Name> name, NameScope state)
         {
             if (name.Count == 0)
             {
@@ -783,6 +786,7 @@ namespace Pytocs.TypeInference
 
         public void RegisterBinding(Binding b)
         {
+            this.bindingMap[b.node] = b;
             allBindings.Add(b);
         }
 
