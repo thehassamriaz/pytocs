@@ -593,7 +593,7 @@ namespace Pytocs.TypeInference
             }
             else
             {
-                ISet<Binding> ents = iterType.Table.LookupAttribute("__iter__");
+                ISet<Binding> ents = iterType.Names.LookupAttribute("__iter__");
                 if (ents != null)
                 {
                     foreach (Binding ent in ents)
@@ -642,12 +642,12 @@ namespace Pytocs.TypeInference
                 analyzer.putProblem(attr, "Can't set attribute for UnknownType");
                 return;
             }
-            ISet<Binding> bs = targetType.Table.LookupAttribute(attr.FieldName.Name);
+            ISet<Binding> bs = targetType.Names.LookupAttribute(attr.FieldName.Name);
             if (bs != null)
             {
                 analyzer.addRef(attr, targetType, bs);
             }
-            targetType.Table.Insert(analyzer, attr.FieldName.Name, attr, attrType, BindingKind.ATTRIBUTE);
+            targetType.Names.Insert(analyzer, attr.FieldName.Name, attr, attrType, BindingKind.ATTRIBUTE);
         }
 
         public static void TransformExprs(Analyzer analyzer, List<Slice> exprs, NameScope s)

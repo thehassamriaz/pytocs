@@ -25,9 +25,9 @@ namespace Pytocs.Types
 
         public InstanceType(DataType c)
         {
-            Table.setStateType(NameScope.StateType.INSTANCE);
-            Table.addSuper(c.Table);
-            Table.Path = c.Table.Path;
+            Names.setStateType(NameScope.StateType.INSTANCE);
+            Names.addSuper(c.Names);
+            Names.Path = c.Names.Path;
             classType = c;
         }
 

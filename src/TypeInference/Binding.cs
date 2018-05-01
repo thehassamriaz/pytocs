@@ -50,7 +50,7 @@ namespace Pytocs.TypeInference
         public Binding(string id, Node node, DataType type, BindingKind kind)
         {
             this.name = id;
-            this.qname = type.Table.Path;
+            this.qname = type.Names.Path;
             this.type = type;
             this.kind = kind;
             this.node = node;

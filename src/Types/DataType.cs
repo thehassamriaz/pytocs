@@ -30,10 +30,10 @@ namespace Pytocs.Types
 
         public DataType()
         {
-            this.Table = new NameScope(null, NameScope.StateType.SCOPE);
+            this.Names = new NameScope(null, NameScope.StateType.SCOPE);
         }
 
-        public NameScope Table { get; set; }
+        public NameScope Names { get; set; }
 
         public override bool Equals(object obj)
         {
