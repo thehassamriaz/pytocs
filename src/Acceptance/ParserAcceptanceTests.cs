@@ -47,7 +47,7 @@ namespace Pytocs.Acceptance
             var rdr = new StringReader(pyModule);
             var lex = new Syntax.Lexer("foo.py", rdr);
             var par = new Syntax.Parser("foo.py", lex);
-            var stm = par.Parse(); ;
+            var stm = par.Parse();
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, "test", "testModule");
             var xlt = new ModuleTranslator(analyzer, gen);

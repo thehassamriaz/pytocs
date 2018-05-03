@@ -68,7 +68,8 @@ namespace Pytocs.Translate
 
         protected override void GenerateDefaultArgMethod(
             CodeParameterDeclarationExpression[] argList,
-            CodeExpression [] paramList)
+            CodeExpression [] paramList, 
+            CodeTypeReference retType)
         {
             var cons = gen.Constructor(argList, () => {});
             cons.ChainedConstructorArgs.AddRange(paramList);

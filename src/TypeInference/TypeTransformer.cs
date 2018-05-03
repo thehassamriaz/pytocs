@@ -75,7 +75,7 @@ namespace Pytocs.TypeInference
             ISet<Binding> bs = targetType.Names.LookupAttribute(a.FieldName.Name);
             if (bs == null)
             {
-                analyzer.putProblem(a.FieldName, "attribute not found in type: " + targetType);
+                analyzer.AddProblem(a.FieldName, "attribute not found in type: " + targetType);
                 DataType t = DataType.Unknown;
                 t.Names.Path = targetType.Names.ExtendPath(analyzer, a.FieldName.Name);
                 return t;
@@ -302,10 +302,10 @@ namespace Pytocs.TypeInference
                 DataType toType = func.Definition.body.Accept(new TypeTransformer(funcTable, analyzer));
                 if (MissingReturn(toType))
                 {
-                    analyzer.putProblem(func.Definition.name, "Function doesn't always return a value");
+                    analyzer.AddProblem(func.Definition.name, "Function doesn't always return a value");
                     if (call != null)
                     {
-                        analyzer.putProblem(call, "Call doesn't always return a value");
+                        analyzer.AddProblem(call, "Call doesn't always return a value");
                     }
                 }
 
@@ -389,7 +389,7 @@ namespace Pytocs.TypeInference
                             aType = DataType.Unknown;
                             if (call != null)
                             {
-                                analyzer.putProblem(parameters[i].Id, //$REVIEW: should be using identifiers
+                                analyzer.AddProblem(parameters[i].Id, //$REVIEW: should be using identifiers
                                         "unable to bind argument:" + parameters[i]);
                             }
                         }
@@ -516,7 +516,7 @@ namespace Pytocs.TypeInference
                     }
                     break;
                 default:
-                    analyzer.putProblem(@base, @base + " is not a class");
+                    analyzer.AddProblem(@base, @base + " is not a class");
                     break;
                 }
                 baseTypes.Add(baseType);
@@ -858,7 +858,7 @@ namespace Pytocs.TypeInference
                 DataType mod = analyzer.LoadModule(a.orig.segs, scope);
                 if (mod == null)
                 {
-                    analyzer.putProblem(i, "Cannot load module");
+                    analyzer.AddProblem(i, "Cannot load module");
                 }
                 else if (a.alias != null)
                 {
@@ -878,7 +878,7 @@ namespace Pytocs.TypeInference
             DataType dtModule = analyzer.LoadModule(i.DottedName.segs, scope);
             if (dtModule == null)
             {
-                analyzer.putProblem(i, "Cannot load module");
+                analyzer.AddProblem(i, "Cannot load module");
             }
             else if (i.isImportStar())
             {
@@ -1086,7 +1086,7 @@ namespace Pytocs.TypeInference
             }
             else
             {
-                analyzer.putProblem(id, "unbound variable " + id.Name);
+                analyzer.AddProblem(id, "unbound variable " + id.Name);
                 analyzer.Unresolved.Add(id);
                 DataType t = DataType.Unknown;
                 t.Names.Path = scope.ExtendPath(analyzer, id.Name);
@@ -1423,12 +1423,12 @@ namespace Pytocs.TypeInference
 
         protected void AddError(Node n, string msg)
         {
-            analyzer.putProblem(n, msg);
+            analyzer.AddProblem(n, msg);
         }
 
         protected void AddWarning(Node n, string msg)
         {
-            analyzer.putProblem(n, msg);
+            analyzer.AddProblem(n, msg);
         }
 
         /// <summary>

@@ -207,13 +207,13 @@ namespace Pytocs.CodeModel
             return cons;
         }
 
-        internal CodeMemberMethod Method(string name, IEnumerable<CodeParameterDeclarationExpression> parms, Action body)
+        internal CodeMemberMethod Method(string name, IEnumerable<CodeParameterDeclarationExpression> parms, CodeTypeReference retType, Action body)
         {
             var method = new CodeMemberMethod
             {
                 Name = name,
                 Attributes = MemberAttributes.Public,
-                ReturnType = new CodeTypeReference(typeof(object))
+                ReturnType = retType
             };
             method.Parameters.AddRange(parms.ToArray());
             AddMemberWithComments(method);
@@ -222,13 +222,13 @@ namespace Pytocs.CodeModel
             return method;
         }
 
-        internal CodeMemberMethod StaticMethod(string name, IEnumerable<CodeParameterDeclarationExpression> parms, Action body)
+        internal CodeMemberMethod StaticMethod(string name, IEnumerable<CodeParameterDeclarationExpression> parms, CodeTypeReference retType, Action body)
         {
             var method = new CodeMemberMethod
             {
                 Name = name,
                 Attributes = MemberAttributes.Public | MemberAttributes.Static,
-                ReturnType = new CodeTypeReference(typeof(object))
+                ReturnType = retType,
             };
             method.Parameters.AddRange(parms.ToArray());
             AddMemberWithComments(method);
@@ -434,7 +434,7 @@ namespace Pytocs.CodeModel
             return new CodeMethodReferenceExpression(exp, methodName);
         }
 
-        internal CodeObjectCreateExpression New(CodeTypeReference type, params CodeExpression[] args)
+        public CodeObjectCreateExpression New(CodeTypeReference type, params CodeExpression[] args)
         {
             var exp = new CodeObjectCreateExpression
             {

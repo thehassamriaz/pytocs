@@ -24,6 +24,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Pytocs.TypeInference;
+using Rhino.Mocks;
 
 namespace Pytocs.Translate
 {
@@ -35,7 +36,8 @@ namespace Pytocs.Translate
         [SetUp]
         public void Setup()
         {
-            this.analyzer = null;
+            this.analyzer = MockRepository.GenerateStub<Analyzer>();
+            this.analyzer.Replay();
         }
 
         private string XlatModule(string pyModule, string filename = "module.py")

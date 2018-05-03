@@ -18,6 +18,7 @@
 using NUnit.Framework;
 using Pytocs.CodeModel;
 using Pytocs.TypeInference;
+using Rhino.Mocks;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,9 +31,13 @@ namespace Pytocs.Translate
     [TestFixture]
     public class LocalVariableTranslator
     {
+        private Analyzer analyzer;
+
         [SetUp]
         public void Setup()
         {
+            this.analyzer = MockRepository.GenerateStub<Analyzer>();
+            this.analyzer.Replay();
         }
 
         private string XlatModule(string pyModule)
@@ -44,7 +49,7 @@ namespace Pytocs.Translate
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, "test", "testModule");
             var sym = new SymbolGenerator();
-            var xlt = new StatementTranslator(gen, null, sym, new HashSet<string>());
+            var xlt = new StatementTranslator(gen, analyzer, sym, new HashSet<string>());
             stm[0].Accept(xlt);
             var pvd = new CSharpCodeProvider();
             var writer = new StringWriter();
@@ -76,7 +81,7 @@ namespace Pytocs.Translate
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, "test", "testModule");
             var sym = new SymbolGenerator();
-            var xlt = new StatementTranslator(gen, null, sym, new HashSet<string>());
+            var xlt = new StatementTranslator(gen, analyzer, sym, new HashSet<string>());
             stm[0].Accept(xlt);
             var pvd = new CSharpCodeProvider();
             var writer = new StringWriter();

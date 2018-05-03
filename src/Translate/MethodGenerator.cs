@@ -47,6 +47,7 @@ namespace Pytocs.Translate
         {
             this.f = f;
             this.fnName = fnName;
+            this.analyzer = null; //$TODO lookup types.
             this.args = args;
             this.isStatic = isStatic;
             this.gen = gen;
@@ -64,13 +65,14 @@ namespace Pytocs.Translate
         protected virtual CodeMemberMethod Generate(CodeParameterDeclarationExpression[] parms)
         {
             CodeMemberMethod method;
+            var retType = new CodeTypeReference(typeof(object));
             if (isStatic)
             {
-                method = gen.StaticMethod(fnName, parms, () => Xlat(f.body));
+                method = gen.StaticMethod(fnName, parms, retType, () => Xlat(f.body));
             }
             else
             {
-                method = gen.Method(fnName, parms, () => Xlat(f.body));
+                method = gen.Method(fnName, parms, retType, () => Xlat(f.body));
             }
             GenerateTupleParameterUnpackers(method);
             LocalVariableGenerator.Generate(method, globals);
@@ -157,31 +159,14 @@ namespace Pytocs.Translate
             return new CodeTypeReference("Tuple", types.ToArray());
         }
 
-        private void GenerateDefaultArgMethod(int iFirstDefault)
-        {
-            var argList = args.Take(iFirstDefault).Select(p => new CodeParameterDeclarationExpression
-            {
-                ParameterType = new CodeTypeReference(typeof(object)),
-                ParameterName = p.Id.Name,
-                IsVarargs = p.vararg,
-            });
-            var paramList = new List<CodeExpression>();
-            for (int i = 0; i < args.Count; ++i)
-            {
-                paramList.Add((i < iFirstDefault || args[i].test == null)
-                    ? new CodeVariableReferenceExpression(args[i].Id.Name)
-                    : args[i].test.Accept(xlat));
-            }
-            GenerateDefaultArgMethod(argList.ToArray(), paramList.ToArray());
-        }
-
         protected virtual void GenerateDefaultArgMethod(
             CodeParameterDeclarationExpression[] argList,
-            CodeExpression[] paramList)
+            CodeExpression[] paramList,
+            CodeTypeReference retType)
         {
             if (isStatic)
             {
-                gen.StaticMethod(fnName, argList, () =>
+                gen.StaticMethod(fnName, argList, retType, () =>
                 {
                     gen.Return(gen.Appl(
                         new CodeVariableReferenceExpression(fnName),
@@ -190,7 +175,7 @@ namespace Pytocs.Translate
             }
             else
             {
-                gen.Method(fnName, argList, () =>
+                gen.Method(fnName, argList, retType, () =>
                 {
                     gen.Return(gen.Appl(
                         new CodeVariableReferenceExpression(fnName),

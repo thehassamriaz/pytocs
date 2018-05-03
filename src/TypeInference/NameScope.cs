@@ -470,7 +470,7 @@ namespace Pytocs.TypeInference
             }
             else if (target != null)
             {
-                analyzer.putProblem(target, "invalid location for assignment");
+                analyzer.AddProblem(target, "invalid location for assignment");
             }
         }
 
@@ -554,7 +554,7 @@ namespace Pytocs.TypeInference
                 }
                 else if (xs.Count > 0)
                 {
-                    analyzer.putProblem(xs[0].Filename,
+                    analyzer.AddProblem(xs[0].Filename,
                             xs[0].Start,
                             xs[xs.Count - 1].End,
                             "unpacking non-iterable: " + rvalue);
@@ -577,7 +577,7 @@ namespace Pytocs.TypeInference
             {
                 msg = "ValueError: too many values to unpack";
             }
-            analyzer.putProblem(xs[0].Filename, beg, end, msg);
+            analyzer.AddProblem(xs[0].Filename, beg, end, msg);
         }
 
         // iterator
@@ -602,7 +602,7 @@ namespace Pytocs.TypeInference
                         {
                             if (!iterType.isUnknownType())
                             {
-                                analyzer.putProblem(iter, "not an iterable type: " + iterType);
+                                analyzer.AddProblem(iter, "not an iterable type: " + iterType);
                             }
                             this.Bind(analyzer, target, DataType.Unknown, kind);
                         }
@@ -639,7 +639,7 @@ namespace Pytocs.TypeInference
         {
             if (targetType.isUnknownType())
             {
-                analyzer.putProblem(attr, "Can't set attribute for UnknownType");
+                analyzer.AddProblem(attr, "Can't set attribute for UnknownType");
                 return;
             }
             ISet<Binding> bs = targetType.Names.LookupAttribute(attr.FieldName.Name);

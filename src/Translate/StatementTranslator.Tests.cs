@@ -15,16 +15,16 @@
 #endregion
 
 #if DEBUG
-using Pytocs.CodeModel;
 using NUnit.Framework;
+using Pytocs.CodeModel;
+using Pytocs.Syntax;
+using Pytocs.TypeInference;
+using Pytocs.Types;
+using Rhino.Mocks;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Pytocs.TypeInference;
 
 namespace Pytocs.Translate
 {
@@ -33,13 +33,31 @@ namespace Pytocs.Translate
     {
         private static readonly string nl = Environment.NewLine;
 
+        private Analyzer analyzer;
+        private Dictionary<string, Binding> datatypes;
+        private Dictionary<Node, List<Binding>> references;
 
-        public void  Setup()
+        [SetUp]
+        public void Setup()
         {
+            this.analyzer = MockRepository.GenerateStub<Analyzer>();
+            this.datatypes = new Dictionary<string, Binding>();
+            this.references = new Dictionary<Node, List<Binding>>();
+            analyzer.Stub(a => a.References).Return(references);
+            analyzer.Stub(a => a.GetBindingOf(null))
+                .IgnoreArguments()
+                .Do(new Func<Node, Binding>(n => datatypes.TryGetValue(n.Name, out var dt) ? dt : null));
+            analyzer.Replay();
+        }
+
+        private FunType FnVoid(params DataType [] args)
+        {
+            return new FunType(new Pytocs.Types.TupleType(args), DataType.None);
         }
 
         private string XlatStmts(string pyStmt)
         {
+            analyzer.Replay();
             var rdr = new StringReader(pyStmt);
             var lex = new Syntax.Lexer("foo.py", rdr);
             var flt = new Syntax.CommentFilter(lex);
@@ -47,7 +65,7 @@ namespace Pytocs.Translate
             var stm = par.stmt();
             var gen = new CodeGenerator(new CodeCompileUnit(), "", "module");
             gen.SetCurrentMethod(new CodeMemberMethod());
-            var xlt = new StatementTranslator(gen, null, new SymbolGenerator(), new HashSet<string>());
+            var xlt = new StatementTranslator(gen, analyzer, new SymbolGenerator(), new HashSet<string>());
             stm[0].Accept(xlt);
             var pvd = new CSharpCodeProvider();
             var writer = new StringWriter();
@@ -63,6 +81,11 @@ namespace Pytocs.Translate
             return writer.ToString();
         }
 
+        private void Given_DataTypeOf(string qname, DataType dt)
+        {
+            datatypes.Add(qname, new Binding(qname, new Identifier(qname, "foo.py", 0, 0), dt, BindingKind.VARIABLE));
+        }
+
         private string XlatModule(string pyModule)
         {
             var rdr = new StringReader(pyModule);
@@ -72,7 +95,7 @@ namespace Pytocs.Translate
             var stm = par.stmt();
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, "test", "testModule");
-            var xlt = new StatementTranslator(gen, null, new SymbolGenerator(), new HashSet<string>());
+            var xlt = new StatementTranslator(gen, analyzer, new SymbolGenerator(), new HashSet<string>());
             stm[0].Accept(xlt);
             var pvd = new CSharpCodeProvider();
             var writer = new StringWriter();
@@ -115,7 +138,7 @@ namespace Pytocs.Translate
             var stm = par.stmt();
             var unt = new CodeCompileUnit();
             var gen = new CodeGenerator(unt, "test", "testModule");
-            var xlt = new StatementTranslator(gen, null, new SymbolGenerator(), new HashSet<string>());
+            var xlt = new StatementTranslator(gen, analyzer, new SymbolGenerator(), new HashSet<string>());
             stm[0].Accept(xlt);
             var pvd = new CSharpCodeProvider();
             var writer = new StringWriter();
@@ -157,6 +180,7 @@ namespace Pytocs.Translate
     }
 }
 ";
+            Given_DataTypeOf("a", FnVoid(DataType.Unknown, DataType.Str));
             Assert.AreEqual(sExp, XlatModule("def a(self,bar):\n print 'Hello ' + bar\n"));
         }
 
