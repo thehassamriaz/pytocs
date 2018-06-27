@@ -26,14 +26,14 @@ namespace Pytocs.Types
         public ClassType(string name, State parent, string path)
         {
             this.name = name;
-            this.Table = new State(parent, State.StateType.CLASS) { Type = this };
+            this.Scope = new State(parent, State.StateType.CLASS) { Type = this };
             if (parent != null)
             {
-                Table.Path = path;
+                Scope.Path = path;
             }
             else
             {
-                Table.Path = name;
+                Scope.Path = name;
             }
         }
 
@@ -53,7 +53,7 @@ namespace Pytocs.Types
 
         public void AddSuper(DataType superclass)
         {
-            Table.addSuper(superclass.Table);
+            Scope.AddSuperClass(superclass.Scope);
         }
 
         public InstanceType getCanon()

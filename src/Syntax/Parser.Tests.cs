@@ -21,6 +21,7 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace Pytocs.Syntax
 {
@@ -758,6 +759,18 @@ else:
     
 ";
             AssertStmt(sExp, ParseStmt(pySrc));
+        }
+
+        [Test]
+        public void Parser_ArrayComprehension()
+        {
+            var pySrc =
+                "[state for (stash, states) in self.simgr.stashes.items() if (stash != 'pruned') for state in states ]";
+            var sExp =
+                "[state for (stash,states) in self.simgr.stashes.items() if (stash  !=  \"pruned\") for state in states]";
+            var exp = ParseExp(pySrc);
+            Debug.Print(exp.ToString().Substring(65));
+            AssertExp(sExp, exp);
         }
     }
 }

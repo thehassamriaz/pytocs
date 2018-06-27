@@ -42,7 +42,6 @@ namespace Pytocs.TypeInference
         string makePathString(params string[] files);
         byte[] ReadFileBytes(string path);
         string ReadFile(string path);
-        string relPath(string path1, string path2);
         string GetFullPath(string file);
         void WriteFile(string path, string contents);
         void DeleteFile(string path);
@@ -167,45 +166,6 @@ namespace Pytocs.TypeInference
         public byte[] ReadFileBytes(string path)
         {
             return File.ReadAllBytes(path);
-        }
-
-        public string relPath(string path1, string path2)
-        {
-            string a = GetFullPath(path1);
-            string b = GetFullPath(path2);
-
-            string[] aSegments = a.Split('/', '\\');
-            string[] bSegments = b.Split('/', '\\');
-
-            int i;
-            for (i = 0; i < Math.Min(aSegments.Length, bSegments.Length); i++)
-            {
-                if (!aSegments[i].Equals(bSegments[i]))
-                {
-                    break;
-                }
-            }
-
-            int ups = aSegments.Length - i - 1;
-            string res = null;
-            for (int x = 0; x < ups; x++)
-            {
-                res = res + Path.DirectorySeparatorChar + "..";
-            }
-
-            for (int y = i; y < bSegments.Length; y++)
-            {
-                res = res + bSegments[y];
-            }
-
-            if (res == null)
-            {
-                return null;
-            }
-            else
-            {
-                return res;
-            }
         }
 
         public Stream CreateFileStream(string filename, FileMode mode, FileAccess access)

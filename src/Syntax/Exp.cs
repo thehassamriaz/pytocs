@@ -737,6 +737,7 @@ namespace Pytocs.Syntax
     {
         public Exp variable;
         public Exp collection;
+        public Exp projection;
 
         public CompFor(string filename, int start, int end) : base(filename, start, end) { }
 
@@ -752,6 +753,11 @@ namespace Pytocs.Syntax
 
         public override void Write(TextWriter writer)
         {
+            if (projection != null)
+            {
+                projection.Write(writer);
+                writer.Write(" ");
+            }
             writer.Write("for");
             writer.Write(" ");
             variable.Write(writer);
@@ -759,6 +765,11 @@ namespace Pytocs.Syntax
             writer.Write("in");
             writer.Write(" ");
             collection.Write(writer);
+            if (next != null)
+            {
+                writer.Write(" ");
+                next.Write(writer);
+            }
         }
     }
 
@@ -776,6 +787,18 @@ namespace Pytocs.Syntax
         public override void Accept(IExpVisitor v)
         {
             v.VisitCompIf(this);
+        }
+
+        public override void Write(TextWriter writer)
+        {
+            writer.Write("if");
+            writer.Write(" ");
+            test.Write(writer);
+            if (next != null)
+            {
+                writer.Write(" ");
+                next.Write(writer);
+            }
         }
     }
 
@@ -899,12 +922,10 @@ namespace Pytocs.Syntax
 
     public class ListComprehension : Exp
     {
-        public Exp Projection;
         public Exp Collection;
 
-        public ListComprehension(Exp proj, Exp coll, string filename, int start, int end) : base(filename, start, end)
+        public ListComprehension(Exp coll, string filename, int start, int end) : base(filename, start, end)
         {
-            this.Projection = proj;
             this.Collection = coll;
         }
 
@@ -921,8 +942,6 @@ namespace Pytocs.Syntax
         public override void Write(TextWriter writer)
         {
             writer.Write("[");
-            Projection.Write(writer);
-            writer.Write(" ");
             Collection.Write(writer);
             writer.Write("]");
         }
@@ -930,12 +949,10 @@ namespace Pytocs.Syntax
 
     public class SetComprehension : Exp
     {
-        public Exp Projection;
         public Exp Collection;
 
-        public SetComprehension(Exp proj, Exp coll, string filename, int start, int end) : base(filename, start, end)
+        public SetComprehension(Exp coll, string filename, int start, int end) : base(filename, start, end)
         {
-            this.Projection = proj;
             this.Collection = coll;
         }
 
@@ -952,8 +969,6 @@ namespace Pytocs.Syntax
         public override void Write(TextWriter writer)
         {
             writer.Write("{");
-            Projection.Write(writer);
-            writer.Write(" ");
             Collection.Write(writer);
             writer.Write("}");
         }

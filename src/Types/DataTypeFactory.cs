@@ -57,7 +57,7 @@ namespace Pytocs.Types
             // null during bootstrapping of built-in types
             if (analyzer.Builtins != null)
             {
-                module.Table.addSuper(analyzer.Builtins.BaseModule.Table);
+                module.Scope.AddSuperClass(analyzer.Builtins.BaseModule.Scope);
             }
             return module;
         }
@@ -79,22 +79,22 @@ namespace Pytocs.Types
 
         private TupleType Register(TupleType tuple)
         {
-            tuple.Table.addSuper(analyzer.Builtins.BaseTuple.Table);
-            tuple.Table.Path = analyzer.Builtins.BaseTuple.Table.Path;
+            tuple.Scope.AddSuperClass(analyzer.Builtins.BaseTuple.Scope);
+            tuple.Scope.Path = analyzer.Builtins.BaseTuple.Scope.Path;
             return tuple;
         }
 
         private ListType Register(ListType list)
         {
-            list.Table.addSuper(analyzer.Builtins.BaseList.Table);
-            list.Table.Path = analyzer.Builtins.BaseList.Table.Path;
+            list.Scope.AddSuperClass(analyzer.Builtins.BaseList.Scope);
+            list.Scope.Path = analyzer.Builtins.BaseList.Scope.Path;
             return list;
         }
 
         private DictType Register(DictType dictType)
         {
-            dictType.Table.addSuper(analyzer.Builtins.BaseDict.Table);
-            dictType.Table.Path = analyzer.Builtins.BaseDict.Table.Path;
+            dictType.Scope.AddSuperClass(analyzer.Builtins.BaseDict.Scope);
+            dictType.Scope.Path = analyzer.Builtins.BaseDict.Scope.Path;
             return dictType;
         }
     }

@@ -30,10 +30,10 @@ namespace Pytocs.Types
 
         public DataType()
         {
-            this.Table = new State(null, State.StateType.SCOPE);
+            this.Scope = new State(null, State.StateType.SCOPE);
         }
 
-        public State Table { get; set; }
+        public State Scope { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -69,7 +69,7 @@ namespace Pytocs.Types
             return this == DataType.Unknown;
         }
 
-        public ModuleType asModuleType()
+        public ModuleType AsModuleType()
         {
             switch (this)
             {

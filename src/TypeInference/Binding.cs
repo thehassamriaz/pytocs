@@ -50,7 +50,7 @@ namespace Pytocs.TypeInference
         public Binding(string id, Node node, DataType type, BindingKind kind)
         {
             this.name = id;
-            this.qname = type.Table.Path;
+            this.qname = type.Scope.Path;
             this.type = type;
             this.kind = kind;
             this.node = node;
@@ -114,14 +114,14 @@ namespace Pytocs.TypeInference
                 return node.GetDocString();
         }
 
-        public void addRef(Node node)
+        public void AddReferent(Node node)
         {
             refs.Add(node);
         }
 
         // merge one more type into the type
         // used by stateful assignments which we can't track down the control flow
-        public void addType(DataType t)
+        public void AddType(DataType t)
         {
             type = UnionType.Union(type, t);
         }
@@ -148,7 +148,7 @@ namespace Pytocs.TypeInference
             DataType bt = type;
             if (bt is ModuleType)
             {
-                file = bt.asModuleType().file;
+                file = bt.AsModuleType().file;
                 return file ?? "<built-in module>";
             }
 

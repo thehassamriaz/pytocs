@@ -104,7 +104,7 @@ namespace Pytocs.Translate
         public void ExListComprehension()
         {
             string pySrc = "[int(x) for x in s]";
-            string sExp = "s.Select(x => Convert.ToInt32(x))";
+            string sExp = "s.Select(x => Convert.ToInt32(x)).ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
@@ -122,7 +122,7 @@ namespace Pytocs.Translate
         public void ExListCompIf()
         {
             string pySrc = "[int(x) for x in s if x > 10]";
-            string sExp = "s.Where(x => x > 10).Select(x => Convert.ToInt32(x))";
+            string sExp = "s.Where(x => x > 10).Select(x => Convert.ToInt32(x)).ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
@@ -130,7 +130,7 @@ namespace Pytocs.Translate
         public void ExListCompWithSplit()
         {
             string pySrc = "[int(x) for x in s.split('/') if x != '']";
-            string sExp = "s.split(\"/\").Where(x => x != \"\").Select(x => Convert.ToInt32(x))";
+            string sExp = "s.split(\"/\").Where(x => x != \"\").Select(x => Convert.ToInt32(x)).ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
@@ -217,7 +217,7 @@ namespace Pytocs.Translate
         public void Ex_ListFor()
         {
             var pySrc = "[int2byte(b) for b in bytelist]";
-            string sExp = "bytelist.Select(b => int2byte(b))";
+            string sExp = "bytelist.Select(b => int2byte(b)).ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
@@ -589,6 +589,18 @@ namespace Pytocs.Translate
         {
             string pySrc = "a - (b + c)";
             string sExp = "a - (b + c)";
+            Assert.AreEqual(sExp, Xlat(pySrc));
+        }
+
+        [Test]
+        public void Ex_NestedForIfComprehensions()
+        {
+            var pySrc = "[state for (stash, states) in self.simgr.stashes.items() if (stash != 'pruned') for state in states ]";
+            var sExp = "this.simgr.stashes.items()" +
+                ".Where(Tuple.Create(stash, states) => stash != \"pruned\")" +
+                ".SelectMany((stash,states) => state)" +
+                ".Select(Tuple.Create(stash, states) => state)" +
+                ".ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
     }

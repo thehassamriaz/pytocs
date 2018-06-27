@@ -73,18 +73,21 @@ namespace Pytocs.Translate
             this.gensym = gensym;
         }
 
-        public CodeExpression VisitCompFor(CompFor f)
+        public CodeExpression VisitCompFor(CompFor compFor)
         {
-            throw new NotImplementedException();
-            //var v = compFor.variable.Accept(this);
-            //var c = Translate(v, compFor);
-            //var mr = new CodeMethodReferenceExpression(c, "Select");
-            //var s = m.Appl(mr, new CodeExpression[] {
-            //            m.Lambda(
-            //                new CodeExpression[] { v },
-            //                a.name.Accept(this))
-            //        });
-            //return s;
+            var v = compFor.variable.Accept(this);
+            var c = Translate(v, compFor);
+            if (!IsIdentityProjection(compFor, compFor.projection))
+            {
+                var mr = m.MethodRef(c, "Select");
+                var s = m.Appl(mr, new CodeExpression[] {
+                m.Lambda(
+                    new CodeExpression[] { v },
+                    compFor.projection.Accept(this))
+                });
+                c = s;
+            }
+            return c;
         }
 
         public CodeExpression VisitCompIf(CompIf i)
@@ -488,12 +491,21 @@ namespace Pytocs.Translate
 
         public CodeExpression VisitSetComprehension(SetComprehension sc)
         {
-            var compFor = (CompFor) sc.Collection;
+            var compForOrig = (CompFor) sc.Collection;
 
+            // Create a copy without a projection -- we translate the projection 
+            // in this method.
+            var compFor = new CompFor(compForOrig.Filename, compForOrig.Start, compForOrig.End)
+            {
+                variable = compForOrig.variable,
+                collection = compForOrig.collection,
+                next = compForOrig.next
+            };
+            
             var v = compFor.variable.Accept(this);
             var c = Translate(v, compFor);
 
-            if (IsIdentityProjection(compFor, sc.Projection))
+            if (IsIdentityProjection(compFor, compForOrig.projection))
             {
                 return m.Appl(
                     m.MethodRef(
@@ -508,7 +520,7 @@ namespace Pytocs.Translate
                         "ToHashSet"),
                         m.Lambda(
                             new CodeExpression[] { v },
-                            sc.Projection.Accept(this)));
+                            compForOrig.projection.Accept(this)));
             }
             else
             {
@@ -522,7 +534,7 @@ namespace Pytocs.Translate
                                     "Chop"),
                                     m.Lambda(
                                          varList.Expressions.Select(e => e.Accept(this)).ToArray(),
-                                         sc.Projection.Accept(this))),
+                                         compForOrig.projection.Accept(this))),
                             "ToHashSet"));
             }
 #if NO
@@ -652,27 +664,18 @@ namespace Pytocs.Translate
 
         private bool IsIdentityProjection(CompFor compFor, Exp projection)
         {
-            var idV = compFor.variable as Identifier;
-            var idP = projection as Identifier;
-            return (idV != null && idP != null && idV.Name == idP.Name);
+            return (compFor.variable is Identifier idV &&
+                projection is Identifier idP && 
+                idV.Name == idP.Name);
         }
 
         public CodeExpression VisitListComprehension(ListComprehension lc)
         {
-            var compFor = (CompFor) lc.Collection;
+            var compFor = (CompFor)lc.Collection;
             var v = compFor.variable.Accept(this);
-            var c = Translate(v, compFor);
-
-            if (IsIdentityProjection(compFor, lc.Projection))
-                return c;
-
-            var mr = m.MethodRef(c, "Select");
-            var s = m.Appl(mr, new CodeExpression[] {
-                m.Lambda(
-                    new CodeExpression[] { v },
-                    lc.Projection.Accept(this))
-            });
-            return s;
+            var c = lc.Collection.Accept(this);
+            var l = m.ApplyMethod(c, "ToList");
+            return l;
         }
 
         public CodeExpression VisitLambda(Lambda l)
@@ -686,32 +689,36 @@ namespace Pytocs.Translate
         private CodeExpression Translate(CodeExpression v, CompFor compFor)
         {
             var c = compFor.collection.Accept(this);
-            if (compFor.next != null)
+            var next = compFor.next;
+
+            CodeExpression [] lambdaArgs(Exp exp)
             {
-                if (compFor.next is CompIf filter)
+                if (exp is Identifier id)
+                    return new CodeExpression[] { id.Accept(this) };
+                if (exp is PyTuple tuple)
                 {
-                    return Where(c, v, filter.test.Accept(this));
+                    return tuple.values.Select(va => va.Accept(this)).ToArray();
                 }
-                if (compFor.next is CompFor join)
+                throw new NotImplementedException(exp.GetType().ToString());
+            }
+
+            while (next != null)
+            {
+                if (next is CompIf filter)
+                {
+                    c = Where(c, v, filter.test.Accept(this));
+                    next = filter.next;
+                }
+                if (next is CompFor subComprehension)
                 {
                     //var pySrc = "((a, s) for a in stackframe.alocs.values() for s in a._segment_list)";
                     //string sExp = "stackframe.alocs.SelectMany(aa => aa._segment_list, (a, s) => Tuple.Create( a, s ))";
-                    return m.Appl(
+                    c = m.Appl(
                         m.MethodRef(c, "SelectMany"),
                         m.Lambda(
-                              new CodeExpression[] {((Identifier)compFor.variable).Accept(this) },
-                            join.collection.Accept(this)),
-                        m.Lambda(
-                            new CodeExpression[] { 
-                                ((Identifier)compFor.variable).Accept(this),
-                                ((Identifier)join.variable).Accept(this)
-                            },
-                            m.Appl(
-                                m.MethodRef(
-                                    m.TypeRefExpr("Tuple"),
-                                    "Create"),
-                                ((Identifier)compFor.variable).Accept(this),
-                                ((Identifier)join.variable).Accept(this))));
+                            lambdaArgs(compFor.variable),
+                            subComprehension.variable.Accept(this)));
+                    next = subComprehension.next;
                 }
             }
             return c;
