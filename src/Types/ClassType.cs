@@ -26,14 +26,14 @@ namespace Pytocs.Types
         public ClassType(string name, NameScope parent, string path)
         {
             this.name = name;
-            this.Names = new NameScope(parent, NameScope.StateType.CLASS) { Type = this };
+            this.Scope = new NameScope(parent, NameScope.StateType.CLASS) { Type = this };
             if (parent != null)
             {
-                Names.Path = path;
+                Scope.Path = path;
             }
             else
             {
-                Names.Path = name;
+                Scope.Path = name;
             }
         }
 
@@ -53,7 +53,7 @@ namespace Pytocs.Types
 
         public void AddSuper(DataType superclass)
         {
-            Names.addSuper(superclass.Names);
+            Scope.AddSuperClass(superclass.Scope);
         }
 
         public InstanceType getCanon()

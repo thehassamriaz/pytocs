@@ -25,9 +25,9 @@ namespace Pytocs.Types
 
         public InstanceType(DataType c)
         {
-            Names.setStateType(NameScope.StateType.INSTANCE);
-            Names.addSuper(c.Names);
-            Names.Path = c.Names.Path;
+            Scope.setStateType(NameScope.StateType.INSTANCE);
+            Scope.AddSuperClass(c.Scope);
+            Scope.Path = c.Scope.Path;
             classType = c;
         }
 
@@ -38,9 +38,9 @@ namespace Pytocs.Types
 
         public override bool Equals(object other)
         {
-            if (other is InstanceType)
+            if (other is InstanceType that)
             {
-                return classType.Equals(((InstanceType) other).classType);
+                return classType.Equals(that.classType);
             }
             return false;
         }

@@ -30,10 +30,10 @@ namespace Pytocs.Types
 
         public DataType()
         {
-            this.Names = new NameScope(null, NameScope.StateType.SCOPE);
+            this.Scope = new NameScope(null, NameScope.StateType.SCOPE);
         }
 
-        public NameScope Names { get; set; }
+        public NameScope Scope { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -64,17 +64,17 @@ namespace Pytocs.Types
             return this is IntType || this is FloatType;
         }
 
-        public bool isUnknownType()
+        public bool IsUnknownType()
         {
             return this == DataType.Unknown;
         }
 
-        public ModuleType asModuleType()
+        public ModuleType AsModuleType()
         {
             switch (this)
             {
             case UnionType ut:
-                var mut = ut.types.OfType<ModuleType>().FirstOrDefault();
+                var mut = ut.Alternatives.OfType<ModuleType>().FirstOrDefault();
                 if (mut == null)
                     throw new InvalidOperationException("Does not contain a ModuleType.");
                 return mut;

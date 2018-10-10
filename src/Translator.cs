@@ -49,11 +49,18 @@ namespace Pytocs
         public void Translate(string filename, TextReader input, TextWriter output)
         {
             Debug.Print("Translating module {0} in namespace {1}", moduleName, nmspace);
-            var lex = new Lexer(filename, input);
-            var flt = new CommentFilter(lex);
-            var par = new Parser(filename, flt);
-            var stm = par.Parse();
-            TranslateModuleStatements(stm, null, output);
+            try
+            {
+                var lex = new Lexer(filename, input);
+                var flt = new CommentFilter(lex);
+                var par = new Parser(filename, flt);
+                var stm = par.Parse();
+                TranslateModuleStatements(stm, null, output);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "An error occurred when translating module {0} (in {1}).", moduleName, filename);
+            }
         }
         
         public void TranslateModuleStatements(IEnumerable<Statement> stm, Analyzer analyzer, string outputFileName)

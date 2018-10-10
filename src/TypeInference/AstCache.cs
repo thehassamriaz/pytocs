@@ -29,17 +29,17 @@ namespace Pytocs.TypeInference
     /// </summary>
     public class AstCache
     {
-        private IDictionary<string, Module> cache;
-        private Analyzer analyzer;
-        private IFileSystem fs;
-        private string cacheDir;
-        private ILogger LOG;
+        private readonly Analyzer analyzer;
+        private readonly IFileSystem fs;
+        private readonly ILogger logger;
+        private readonly string cacheDir;
+        private readonly IDictionary<string, Module> cache;
 
         public AstCache(Analyzer analyzer, IFileSystem fs, ILogger logger, string cacheDir)
         {
             this.analyzer = analyzer;
             this.fs = fs;
-            this.LOG = logger;
+            this.logger = logger;
             this.cacheDir = cacheDir;
             this.cache = new Dictionary<string, Module>();
         }
@@ -67,7 +67,7 @@ namespace Pytocs.TypeInference
             }
             catch (Exception x)
             {
-                LOG.Error(x, "Failed to clear disk cache. ");
+                logger.Error(x, "Failed to clear disk cache. ");
                 return false;
             }
         }
@@ -84,7 +84,7 @@ namespace Pytocs.TypeInference
         /// <param name="path">Absolute path to a source file.</param>
         /// <returns>The AST, or <code>null</code> if the parse failed for any reason</returns>
         /// </summary>
-        public Module getAST(string path)
+        public Module GetAst(string path)
         {
             // Cache stores null value if the parse failed.
             if (cache.TryGetValue(path, out var module))
@@ -96,7 +96,7 @@ namespace Pytocs.TypeInference
             module = GetSerializedModule(path);
             if (module != null)
             {
-                LOG.Verbose("Reusing " + path);
+                logger.Verbose("Reusing " + path);
                 cache[path] = module;
                 return module;
             }
@@ -104,7 +104,7 @@ namespace Pytocs.TypeInference
             module = null;
             try
             {
-                LOG.Verbose("parsing " + path);
+                logger.Verbose("parsing " + path);
                 var lexer = new Lexer(path, fs.CreateStreamReader(path));
                 var filter = new CommentFilter(lexer);
                 var parser = new Parser(path, filter);

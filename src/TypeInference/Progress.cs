@@ -69,9 +69,9 @@ namespace Pytocs.TypeInference
 
             if (elapsed > 500 || count == total)
             {
-                analyzer.WriteLine("");
+                analyzer.Inform("\r");
                 int dlen = (int) Math.Ceiling(Math.Log10((double) total));
-                analyzer.Write(analyzer.Percent(count, total) + " (" +
+                analyzer.Inform(analyzer.Percent(count, total) + " (" +
                         FormatNumber(count, dlen) +
                         " of " + FormatNumber(total, dlen) + ")");
 
@@ -86,7 +86,7 @@ namespace Pytocs.TypeInference
                 }
 
                 lastRate = rate;
-                analyzer.Write("   SPEED: " + FormatNumber(rate, MAX_SPEED_DIGITS) + "/s");
+                analyzer.Inform("   SPEED: " + FormatNumber(rate, MAX_SPEED_DIGITS) + "/s");
 
                 double totalElapsed = (DateTime.Now - startTime).TotalMilliseconds;
                 int avgRate;
@@ -101,14 +101,14 @@ namespace Pytocs.TypeInference
                 }
                 avgRate = avgRate == 0 ? 1 : avgRate;
 
-                analyzer.Write("   AVG SPEED: " + FormatNumber(avgRate, MAX_SPEED_DIGITS) + "/s");
+                analyzer.Inform("   AVG SPEED: " + FormatNumber(avgRate, MAX_SPEED_DIGITS) + "/s");
 
                 long remain = total - count;
                 //long remainTime = remain / avgRate * 1000;
                 //_.msg_("   ETA: " + _.formatTime(remainTime));
 
 
-                analyzer.Write("       ");      // overflow area
+                analyzer.Inform("       ");      // overflow area
 
                 lastTickTime = DateTime.Now;
                 lastAvgRate = avgRate;

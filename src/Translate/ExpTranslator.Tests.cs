@@ -104,7 +104,7 @@ namespace Pytocs.Translate
         public void ExListComprehension()
         {
             string pySrc = "[int(x) for x in s]";
-            string sExp = "s.Select(x => Convert.ToInt32(x))";
+            string sExp = "s.Select(x => Convert.ToInt32(x)).ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
@@ -122,7 +122,7 @@ namespace Pytocs.Translate
         public void ExListCompIf()
         {
             string pySrc = "[int(x) for x in s if x > 10]";
-            string sExp = "s.Where(x => x > 10).Select(x => Convert.ToInt32(x))";
+            string sExp = "s.Where(x => x > 10).Select(x => Convert.ToInt32(x)).ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
@@ -130,7 +130,7 @@ namespace Pytocs.Translate
         public void ExListCompWithSplit()
         {
             string pySrc = "[int(x) for x in s.split('/') if x != '']";
-            string sExp = "s.split(\"/\").Where(x => x != \"\").Select(x => Convert.ToInt32(x))";
+            string sExp = "s.split(\"/\").Where(x => x != \"\").Select(x => Convert.ToInt32(x)).ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
@@ -217,7 +217,7 @@ namespace Pytocs.Translate
         public void Ex_ListFor()
         {
             var pySrc = "[int2byte(b) for b in bytelist]";
-            string sExp = "bytelist.Select(b => int2byte(b))";
+            string sExp = "bytelist.Select(b => int2byte(b)).ToList()";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
@@ -592,6 +592,18 @@ namespace Pytocs.Translate
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
 
+        [Test]
+        public void Ex_NestedForIfComprehensions()
+        {
+            var pySrc = "[state for (stash, states) in self.simgr.stashes.items() if (stash != 'pruned') for state in states ]";
+            var sExp = "this.simgr.stashes.items()" +
+                ".Where(Tuple.Create(stash, states) => stash != \"pruned\")" +
+                ".SelectMany((stash,states) => state)" +
+                ".Select(Tuple.Create(stash, states) => state)" +
+                ".ToList()";
+            Assert.AreEqual(sExp, Xlat(pySrc));
+        }
+
         [Test(Description = "Reported in Github issue #26")]
         public void Ex_Infinity()
         {
@@ -605,6 +617,22 @@ namespace Pytocs.Translate
         {
             string pySrc = "float('+inf')";
             string sExp = "double.PositiveInfinity";
+            Assert.AreEqual(sExp, Xlat(pySrc));
+        }
+
+        [Test]
+        public void Ex_Complex_Literal()
+        {
+            string pySrc = "3 - 4j";
+            string sExp = "new Complex(3.0, -4.0)";
+            Assert.AreEqual(sExp, Xlat(pySrc));
+        }
+
+        [Test]
+        public void Ex_Complex()
+        {
+            string pySrc = "complex(3,4)";
+            string sExp = "new Complex(3, 4)";
             Assert.AreEqual(sExp, Xlat(pySrc));
         }
     }

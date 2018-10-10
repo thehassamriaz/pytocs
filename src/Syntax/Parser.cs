@@ -1916,9 +1916,13 @@ eval_input: testlist NEWLINE* ENDMARKER
                 Expect(TokenType.RPAREN);
                 return e;
             case TokenType.LBRACKET:
-                lexer.Get();
+                var lbr = lexer.Get();
                 e = testlist_comp(false);
-                Expect(TokenType.RBRACKET);
+                var rbr = Expect(TokenType.RBRACKET);
+                if (e is CompFor)
+                {
+                    e = new ListComprehension(e, filename, lbr.Start, rbr.End);
+                }
                 return e;
             case TokenType.LBRACE:
                 t = lexer.Get();
@@ -2017,8 +2021,8 @@ eval_input: testlist NEWLINE* ENDMARKER
             Exp e2;
             if (Peek(TokenType.For))
             {
-                e2 = comp_for();
-                return new ListComprehension(e, e2, filename, e.Start, e2.End);
+                e2 = comp_for(e);
+                return e2;
             }
             else
             {
@@ -2185,7 +2189,7 @@ eval_input: testlist NEWLINE* ENDMARKER
                 var v = test();
                 if (Peek(TokenType.For))
                 {
-                    var f = comp_for();
+                    var f = comp_for(null);
                     return new DictComprehension(k, v, f, filename, k.Start, f.End);
                 }
                 else
@@ -2212,8 +2216,8 @@ eval_input: testlist NEWLINE* ENDMARKER
                 // set comprehension
                 if (Peek(TokenType.For))
                 {
-                    var f = comp_for();
-                    return new SetComprehension(k, f, filename, k.Start, k.End);
+                    var f = comp_for(k);
+                    return new SetComprehension(f, filename, k.Start, k.End);
                 }
                 else
                 {
@@ -2330,8 +2334,8 @@ eval_input: testlist NEWLINE* ENDMARKER
             Exp defval = null;
             if (Peek(TokenType.For))
             {
-                f = comp_for();
-                return new Argument(name, f, filename, posStart, f.End);
+                f = comp_for(name);
+                return new Argument(null, f, filename, posStart, f.End);
             }
             else if (PeekAndDiscard(TokenType.EQ))
             {
@@ -2350,12 +2354,12 @@ eval_input: testlist NEWLINE* ENDMARKER
         public CompIter comp_iter()
         {
             if (Peek(TokenType.For))
-                return comp_for();
+                return comp_for(null);
             else
                 return comp_if();
         }
         //comp_for: 'for' exprlist 'in' or_test [comp_iter]
-        public CompFor comp_for()
+        public CompFor comp_for(Exp projection)
         {
             var start = Expect(TokenType.For).Start;
             var exprs = exprlist();
@@ -2366,9 +2370,10 @@ eval_input: testlist NEWLINE* ENDMARKER
             {
                 next = comp_iter();
             }
-            return new CompFor(filename, start, (next ?? collection).End)
+            return new CompFor(filename, (projection != null? projection.Start : start), (next ?? collection).End)
             {
                 variable = exprs,
+                projection = projection,
                 collection = collection,
                 next = next,
             };
@@ -2380,7 +2385,7 @@ eval_input: testlist NEWLINE* ENDMARKER
             var start = Expect(TokenType.If).Start;
             var test = test_nocond();
             CompIter next = null;
-            if (Peek(TokenType.For | TokenType.If))
+            if (Peek(TokenType.For, TokenType.If))
                 next = comp_iter();
             return new CompIf(filename, start, (next ?? test).End) { test = test, next = next };
         }

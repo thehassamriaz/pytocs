@@ -50,22 +50,22 @@ namespace Pytocs.TypeInference
         public Binding(string id, Node node, DataType type, BindingKind kind)
         {
             this.name = id;
-            this.qname = type.Names.Path;
+            this.qname = type.Scope.Path;
             this.type = type;
             this.kind = kind;
             this.node = node;
             this.refs = new HashSet<Node>();
 
-            if (node is Url)
+            if (node is Url url)
             {
-                string url = ((Url) node).url;
-                if (url.StartsWith("file://"))
+                string sUrl = url.url;
+                if (sUrl.StartsWith("file://"))
                 {
-                    fileOrUrl = url.Substring("file://".Length);
+                    fileOrUrl = sUrl.Substring("file://".Length);
                 }
                 else
                 {
-                    fileOrUrl = url;
+                    fileOrUrl = sUrl;
                 }
             }
             else
@@ -83,8 +83,8 @@ namespace Pytocs.TypeInference
             this.end = node.End;
 
             Node parent = node.Parent;
-            if ((parent is FunctionDef && ((FunctionDef) parent).name == node) ||
-                    (parent is ClassDef && ((ClassDef) parent).name == node))
+            if ((parent is FunctionDef fnDef && fnDef.name == node) ||
+                (parent is ClassDef classDef && classDef.name == node))
             {
                 this.bodyStart = parent.Start;
                 this.bodyEnd = parent.End;
@@ -114,14 +114,14 @@ namespace Pytocs.TypeInference
                 return node.GetDocString();
         }
 
-        public void addRef(Node node)
+        public void AddReferent(Node node)
         {
             refs.Add(node);
         }
 
         // merge one more type into the type
         // used by stateful assignments which we can't track down the control flow
-        public void addType(DataType t)
+        public void AddType(DataType t)
         {
             type = UnionType.Union(type, t);
         }
@@ -148,7 +148,7 @@ namespace Pytocs.TypeInference
             DataType bt = type;
             if (bt is ModuleType)
             {
-                file = bt.asModuleType().file;
+                file = bt.AsModuleType().file;
                 return file ?? "<built-in module>";
             }
 

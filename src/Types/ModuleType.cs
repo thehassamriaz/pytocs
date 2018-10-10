@@ -28,19 +28,14 @@ namespace Pytocs.Types
             this.name = name;
             this.file = file;  // null for builtin modules
             this.qname = qName;
-            this.Names = new NameScope(parent, NameScope.StateType.MODULE);
-            Names.Path = qname;
-            Names.Type = this;
+            this.Scope = new NameScope(parent, NameScope.StateType.MODULE);
+            Scope.Path = qname;
+            Scope.Type = this;
         }
 
         public override T Accept<T>(IDataTypeVisitor<T> visitor)
         {
             return visitor.VisitModule(this);
-        }
-
-        public void setName(string name)
-        {
-            this.name = name;
         }
 
         public override int GetHashCode()
@@ -50,12 +45,11 @@ namespace Pytocs.Types
 
         public override bool Equals(object other)
         {
-            if (other is ModuleType)
+            if (other is ModuleType that)
             {
-                ModuleType co = (ModuleType) other;
                 if (file != null)
                 {
-                    return file.Equals(co.file);
+                    return file.Equals(that.file);
                 }
             }
             return object.ReferenceEquals(this, other);

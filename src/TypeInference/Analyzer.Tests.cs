@@ -418,6 +418,54 @@ class Derived(Base):
 
             ExpectBindings(sExp);
         }
+
+        [Test]
+        public void TypeAn_call_Ctor()
+        {
+            fs.Dir("foo")
+                .File("test.py",
+@"class Foo():
+    def __init__(self, name):
+        this.name = name
+
+    def bar(self):
+        return Foo(""bar"")
+");
+            an.Analyze(@"\foo");
+            an.Finish();
+            var sExp =
+            #region Expected 
+@"(binding:kind=MODULE:node=(module:\foo\test.py):type=test:qname=.foo.test:refs=[])
+(binding:kind=CLASS:node=Foo:type=<Foo>:qname=.foo.test.Foo:refs=[Foo])
+(binding:kind=CONSTRUCTOR:node=__init__:type=(Foo, str) -> None:qname=.foo.test.Foo.__init__:refs=[])
+(binding:kind=METHOD:node=bar:type=Foo -> Foo:qname=.foo.test.Foo.bar:refs=[])
+(binding:kind=PARAMETER:node=self:type=Foo:qname=.foo.test.Foo.__init__.self:refs=[])
+(binding:kind=PARAMETER:node=name:type=str:qname=.foo.test.Foo.__init__.name:refs=[name])
+(binding:kind=PARAMETER:node=self:type=Foo:qname=.foo.test.Foo.bar.self:refs=[])
+";
+            #endregion
+            ExpectBindings(sExp);
+        }
+
+        [Test]
+        public void TypeAn_call_Ctor_names()
+        {
+            fs.Dir("foo")
+                .File("test.py",
+@"class Foo():
+    def __init__(self, name):
+        this.name = name
+
+    def make(name):
+        return Foo(name)
+
+x = make('foo')
+y = make('bar')
+");
+            an.Analyze("foo");
+            an.Finish();
+
+        }
     }
 }
 

@@ -249,7 +249,7 @@ namespace Pytocs.Types
                 bool first = true;
                 sb.Append("{");
 
-                foreach (DataType t in u.types)
+                foreach (DataType t in u.Alternatives)
                 {
                     if (!first)
                     {
