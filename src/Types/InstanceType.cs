@@ -38,9 +38,9 @@ namespace Pytocs.Types
 
         public override bool Equals(object other)
         {
-            if (other is InstanceType)
+            if (other is InstanceType that)
             {
-                return classType.Equals(((InstanceType) other).classType);
+                return classType.Equals(that.classType);
             }
             return false;
         }

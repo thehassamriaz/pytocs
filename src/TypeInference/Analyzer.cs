@@ -288,7 +288,8 @@ namespace Pytocs.TypeInference
             return ModuleScope.table.Values
                 .SelectMany(g =>g)
                 .Where(g => g.kind == BindingKind.MODULE && 
-                            !g.IsBuiltin && !g.IsSynthetic);
+                            !g.IsBuiltin &&
+                            !g.IsSynthetic);
         }
 
         ModuleType GetCachedModule(string file)
@@ -297,7 +298,7 @@ namespace Pytocs.TypeInference
             switch (t)
             {
             case UnionType ut:
-                return ut.types.OfType<ModuleType>().FirstOrDefault();
+                return ut.Alternatives.OfType<ModuleType>().FirstOrDefault();
             case ModuleType mt:
                 return mt;
             default:
@@ -570,9 +571,7 @@ namespace Pytocs.TypeInference
                     {
                         state.AddExpressionBinding(this, name[i].Name, name[i], mod, BindingKind.VARIABLE);
                     }
-
                     prev = mod;
-
                 }
                 else if (i == name.Count - 1)
                 {
@@ -663,7 +662,8 @@ namespace Pytocs.TypeInference
 
         public void Finish()
         {
-            InformLine("\nFinished loading files. " + CalledFunctions + " functions were called.");
+            InformLine("");
+            InformLine("Finished loading files. " + CalledFunctions + " functions were called.");
             InformLine("Analyzing uncalled functions");
             ApplyUncalled();
 

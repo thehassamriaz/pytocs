@@ -25,7 +25,7 @@ namespace Pytocs.Types
     {
         public IDictionary<DataType, DataType> arrows = new Dictionary<DataType, DataType>();
         public readonly FunctionDef Definition;
-        public Lambda lambda;
+        private Lambda lambda;
         public ClassType Class = null;
         public State env;
         public List<DataType> defaultTypes;       // types for default parameters (evaluated at def time)
@@ -49,7 +49,7 @@ namespace Pytocs.Types
 
         public FunType(DataType from, DataType to)
         {
-            addMapping(from, to);
+            AddMapping(from, to);
         }
 
         public DataType SelfType { get; set; }                 // self's type for calls
@@ -59,7 +59,7 @@ namespace Pytocs.Types
             return visitor.VisitFun(this);
         }
 
-        public void addMapping(DataType from, DataType to)
+        public void AddMapping(DataType from, DataType to)
         {
             if (from is TupleType tuple)
             {
@@ -105,9 +105,9 @@ namespace Pytocs.Types
 
         public override bool Equals(object other)
         {
-            if (other is FunType fo)
+            if (other is FunType that)
             {
-                return fo.Scope.Path.Equals(Scope.Path) || object.ReferenceEquals(this , other);
+                return that.Scope.Path.Equals(Scope.Path) || object.ReferenceEquals(this, that);
             }
             else
             {
@@ -132,15 +132,15 @@ namespace Pytocs.Types
                 return true;
             }
 
-            if (type1.isUnknownType() || type1 == DataType.None || type1.Equals(type2))
+            if (type1.IsUnknownType() || type1 == DataType.None || type1.Equals(type2))
             {
                 return true;
             }
 
-            if (type1 is TupleType && type2 is TupleType)
+            if (type1 is TupleType  tup1 && type2 is TupleType tup2)
             {
-                List<DataType> elems1 = ((TupleType) type1).eltTypes;
-                List<DataType> elems2 = ((TupleType) type2).eltTypes;
+                List<DataType> elems1 = tup1.eltTypes;
+                List<DataType> elems2 = tup2.eltTypes;
 
                 if (elems1.Count == elems2.Count)
                 {

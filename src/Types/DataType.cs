@@ -64,7 +64,7 @@ namespace Pytocs.Types
             return this is IntType || this is FloatType;
         }
 
-        public bool isUnknownType()
+        public bool IsUnknownType()
         {
             return this == DataType.Unknown;
         }
@@ -74,7 +74,7 @@ namespace Pytocs.Types
             switch (this)
             {
             case UnionType ut:
-                var mut = ut.types.OfType<ModuleType>().FirstOrDefault();
+                var mut = ut.Alternatives.OfType<ModuleType>().FirstOrDefault();
                 if (mut == null)
                     throw new InvalidOperationException("Does not contain a ModuleType.");
                 return mut;

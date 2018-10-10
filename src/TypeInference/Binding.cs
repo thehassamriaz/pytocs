@@ -56,16 +56,16 @@ namespace Pytocs.TypeInference
             this.node = node;
             this.refs = new HashSet<Node>();
 
-            if (node is Url)
+            if (node is Url url)
             {
-                string url = ((Url) node).url;
-                if (url.StartsWith("file://"))
+                string sUrl = url.url;
+                if (sUrl.StartsWith("file://"))
                 {
-                    fileOrUrl = url.Substring("file://".Length);
+                    fileOrUrl = sUrl.Substring("file://".Length);
                 }
                 else
                 {
-                    fileOrUrl = url;
+                    fileOrUrl = sUrl;
                 }
             }
             else
@@ -83,8 +83,8 @@ namespace Pytocs.TypeInference
             this.end = node.End;
 
             Node parent = node.Parent;
-            if ((parent is FunctionDef && ((FunctionDef) parent).name == node) ||
-                    (parent is ClassDef && ((ClassDef) parent).name == node))
+            if ((parent is FunctionDef fnDef && fnDef.name == node) ||
+                (parent is ClassDef classDef && classDef.name == node))
             {
                 this.bodyStart = parent.Start;
                 this.bodyEnd = parent.End;

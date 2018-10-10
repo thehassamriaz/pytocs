@@ -229,7 +229,7 @@ namespace Pytocs.TypeInference
         /// </summary>
         public ISet<Binding> LookupBindingsOf(string name)
         {
-            ISet<Binding> b = getModuleBindingIfGlobal(name);
+            ISet<Binding> b = GetModuleBindingIfGlobal(name);
             if (b != null)
             {
                 return b;
@@ -255,7 +255,7 @@ namespace Pytocs.TypeInference
         /// </summary>
         public ISet<Binding> LookupScope(string name)
         {
-            ISet<Binding> b = getModuleBindingIfGlobal(name);
+            ISet<Binding> b = GetModuleBindingIfGlobal(name);
             if (b != null)
             {
                 return b;
@@ -388,7 +388,7 @@ namespace Pytocs.TypeInference
         /// <summary>
         /// If {@code name} is declared as a global, return the module binding.
         /// </summary>
-        private ISet<Binding> getModuleBindingIfGlobal(string name)
+        private ISet<Binding> GetModuleBindingIfGlobal(string name)
         {
             if (IsGlobalName(name))
             {
@@ -447,25 +447,22 @@ namespace Pytocs.TypeInference
         /// </summary>
         public void Bind(Analyzer analyzer, Exp target, DataType rvalue, BindingKind kind)
         {
-            if (target is Identifier id)
+            switch (target)
             {
+            case Identifier id:
                 this.Bind(analyzer, id, rvalue, kind);
-            }
-            else if (target is PyTuple tup)
-            {
+                return;
+            case PyTuple tup:
                 this.Bind(analyzer, tup.values, rvalue, kind);
-            }
-            else if (target is PyList list)
-            {
+                return;
+            case PyList list:
                 this.Bind(analyzer, list.elts, rvalue, kind);
-            }
-            else if (target is AttributeAccess attr)
-            {
+                return;
+            case AttributeAccess attr:
                 DataType targetType = TransformExp(analyzer, attr.Expression, this);
-                setAttr(analyzer, attr, rvalue, targetType);
-            }
-            else if (target is ArrayRef sub)
-            {
+                SetAttribute(analyzer, attr, rvalue, targetType);
+                return;
+            case ArrayRef sub:
                 DataType valueType = TransformExp(analyzer, sub.array, this);
                 var xform = new TypeTransformer(this, analyzer);
                 TransformExprs(analyzer, sub.subs, this);
@@ -473,8 +470,9 @@ namespace Pytocs.TypeInference
                 {
                     t.setElementType(UnionType.Union(t.eltType, rvalue));
                 }
+                return;
             }
-            else if (target != null)
+            if (target != null)
             {
                 analyzer.PutProblem(target, "invalid location for assignment");
             }
@@ -551,7 +549,7 @@ namespace Pytocs.TypeInference
                 {
                     Bind(analyzer, xs, ((DictType) rvalue).ToTupleType(xs.Count), kind);
                 }
-                else if (rvalue.isUnknownType())
+                else if (rvalue.IsUnknownType())
                 {
                     foreach (Exp x in xs)
                     {
@@ -606,7 +604,7 @@ namespace Pytocs.TypeInference
                     {
                         if (ent == null || !(ent.type is FunType))
                         {
-                            if (!iterType.isUnknownType())
+                            if (!iterType.IsUnknownType())
                             {
                                 analyzer.PutProblem(iter, "not an iterable type: " + iterType);
                             }
@@ -625,25 +623,24 @@ namespace Pytocs.TypeInference
             }
         }
 
-        private static void setAttr(Analyzer analyzer, AttributeAccess attr, DataType attrType, DataType targetType)
+        private static void SetAttribute(Analyzer analyzer, AttributeAccess attr, DataType attrType, DataType targetType)
         {
-            if (targetType is UnionType)
+            if (targetType is UnionType ut)
             {
-                ISet<DataType> types = ((UnionType) targetType).types;
-                foreach (DataType tp in types)
+                foreach (DataType dt in ut.Alternatives)
                 {
-                    setAttrType(analyzer, attr, tp, attrType);
+                    SetAttributeType(analyzer, attr, dt, attrType);
                 }
             }
             else
             {
-                setAttrType(analyzer, attr, targetType, attrType);
+                SetAttributeType(analyzer, attr, targetType, attrType);
             }
         }
 
-        private static void setAttrType(Analyzer analyzer, AttributeAccess attr, DataType targetType, DataType attrType)
+        private static void SetAttributeType(Analyzer analyzer, AttributeAccess attr, DataType targetType, DataType attrType)
         {
-            if (targetType.isUnknownType())
+            if (targetType.IsUnknownType())
             {
                 analyzer.PutProblem(attr, "Can't set attribute for UnknownType");
                 return;

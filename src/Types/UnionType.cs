@@ -23,11 +23,11 @@ namespace Pytocs.Types
 {
     public class UnionType : DataType
     {
-        public ISet<DataType> types;
+        public ISet<DataType> Alternatives;
 
         public UnionType()
         {
-            this.types = new HashSet<DataType>();
+            this.Alternatives = new HashSet<DataType>();
         }
 
         public UnionType(params DataType[] initialTypes) :
@@ -46,7 +46,7 @@ namespace Pytocs.Types
 
         public bool isEmpty()
         {
-            return types.Count == 0;
+            return Alternatives.Count == 0;
         }
 
 
@@ -70,7 +70,7 @@ namespace Pytocs.Types
         {
             if (t1 is UnionType)
             {
-                ISet<DataType> types = new HashSet<DataType>(((UnionType) t1).types);
+                ISet<DataType> types = new HashSet<DataType>(((UnionType) t1).Alternatives);
                 types.Remove(t2);
                 return UnionType.newUnion(types);
             }
@@ -96,24 +96,24 @@ namespace Pytocs.Types
 
         public void setTypes(ISet<DataType> types)
         {
-            this.types = types;
+            this.Alternatives = types;
         }
 
         public void addType(DataType t)
         {
             if (t is UnionType)
             {
-                types.UnionWith(((UnionType) t).types);
+                Alternatives.UnionWith(((UnionType) t).Alternatives);
             }
             else
             {
-                types.Add(t);
+                Alternatives.Add(t);
             }
         }
 
         public bool contains(DataType t)
         {
-            return types.Contains(t);
+            return Alternatives.Contains(t);
         }
 
         /// <summary>
@@ -157,8 +157,8 @@ namespace Pytocs.Types
         /// </summary>
         public DataType FirstUseful()
         {
-            return types
-                .Where(type => (!type.isUnknownType() && type != DataType.None))
+            return Alternatives
+                .Where(type => (!type.IsUnknownType() && type != DataType.None))
                 .FirstOrDefault();
         }
 
@@ -173,8 +173,8 @@ namespace Pytocs.Types
             }
             else if (other is UnionType)
             {
-                ISet<DataType> types1 = types;
-                ISet<DataType> types2 = ((UnionType) other).types;
+                ISet<DataType> types1 = Alternatives;
+                ISet<DataType> types2 = ((UnionType) other).Alternatives;
                 if (types1.Count != types2.Count)
                 {
                     return false;

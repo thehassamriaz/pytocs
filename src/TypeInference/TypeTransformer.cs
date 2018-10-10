@@ -56,7 +56,7 @@ namespace Pytocs.TypeInference
             var targetType = a.Expression.Accept(this);
             if (targetType is UnionType ut)
             {
-                ISet<DataType> types = ut.types;
+                ISet<DataType> types = ut.Alternatives;
                 DataType retType = DataType.Unknown;
                 foreach (DataType tt in types)
                 {
@@ -174,7 +174,7 @@ namespace Pytocs.TypeInference
             var dtStar = c.stargs?.Accept(this);
             if (fun is UnionType un)
             {
-                ISet<DataType> types = un.types;
+                ISet<DataType> types = un.Alternatives;
                 DataType retType = DataType.Unknown;
                 foreach (DataType ft in types)
                 {
@@ -315,7 +315,7 @@ namespace Pytocs.TypeInference
                 }
 
                 toType = UnionType.remove(toType, DataType.Cont);
-                func.addMapping(fromType, toType);
+                func.AddMapping(fromType, toType);
                 func.SelfType = null;
                 return toType;
             }
@@ -449,7 +449,7 @@ namespace Pytocs.TypeInference
 
             if (toType is UnionType ut)
             {
-                foreach (DataType t in ut.types)
+                foreach (DataType t in ut.Alternatives)
                 {
                     if (t == DataType.None || t == DataType.Cont)
                     {
@@ -515,7 +515,7 @@ namespace Pytocs.TypeInference
                     classType.AddSuper(baseType);
                     break;
                 case UnionType ut:
-                    foreach (DataType parent in ut.types)
+                    foreach (DataType parent in ut.Alternatives)
                     {
                         classType.AddSuper(parent);
                     }
@@ -1230,7 +1230,7 @@ namespace Pytocs.TypeInference
             if (vt is UnionType)
             {
                 DataType retType = DataType.Unknown;
-                foreach (DataType t in ((UnionType)vt).types)
+                foreach (DataType t in ((UnionType)vt).Alternatives)
                 {
                     retType = UnionType.Union( retType, GetSubscript(s, t, st));
                 }
@@ -1244,7 +1244,7 @@ namespace Pytocs.TypeInference
 
         public DataType GetSubscript(ArrayRef s, DataType vt, DataType st)
         {
-            if (vt.isUnknownType())
+            if (vt.IsUnknownType())
             {
                 return DataType.Unknown;
             }

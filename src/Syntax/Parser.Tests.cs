@@ -772,5 +772,25 @@ else:
             Debug.Print(exp.ToString().Substring(65));
             AssertExp(sExp, exp);
         }
+
+        [Test(Description = "Reported in Github 26")]
+        public void Parser_Infinity()
+        {
+            var pySrc =
+@"PosInf = float('+inf')
+";
+            var sExp = 
+@"PosInf=float(""+inf"")
+";
+            AssertStmt(sExp, ParseStmt(pySrc));
+        }
+
+        [Test(Description = "Reported in Github 26")]
+        public void Parser_complex()
+        {
+            var pySrc = @"3 + 2j";
+            var sExp = @"(3  +  2j)";
+            AssertExp(sExp, ParseExp(pySrc));
+        }
     }
 }

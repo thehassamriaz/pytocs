@@ -424,6 +424,22 @@ namespace Pytocs.Syntax
             var str = (double)tok.Value;
             Assert.AreEqual("0", str.ToString());
         }
+
+        [Test]
+        public void Lex_Github_26()
+        {
+            var tok = Lex("1e300000");
+            Assert.AreEqual(TokenType.REAL, tok.Type);
+            Assert.AreEqual(double.PositiveInfinity, (double)tok.Value);
+        }
+
+        [Test]
+        public void Lex_ImaginaryConstant()
+        {
+            var tok = Lex("3j");
+            Assert.AreEqual(TokenType.IMAG, tok.Type);
+            Assert.AreEqual(3.0, (double)tok.Value);
+        }
     }
 }
 #endif

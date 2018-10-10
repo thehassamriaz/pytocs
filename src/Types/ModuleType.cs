@@ -38,11 +38,6 @@ namespace Pytocs.Types
             return visitor.VisitModule(this);
         }
 
-        public void setName(string name)
-        {
-            this.name = name;
-        }
-
         public override int GetHashCode()
         {
             return GetType().Name.GetHashCode();
@@ -50,12 +45,11 @@ namespace Pytocs.Types
 
         public override bool Equals(object other)
         {
-            if (other is ModuleType)
+            if (other is ModuleType that)
             {
-                ModuleType co = (ModuleType) other;
                 if (file != null)
                 {
-                    return file.Equals(co.file);
+                    return file.Equals(that.file);
                 }
             }
             return object.ReferenceEquals(this, other);

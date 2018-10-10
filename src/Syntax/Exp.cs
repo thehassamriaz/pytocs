@@ -21,6 +21,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Text;
 using System.Numerics;
+using System.Globalization;
 
 namespace Pytocs.Syntax
 {
@@ -296,16 +297,28 @@ namespace Pytocs.Syntax
         {
             return v.VisitRealLiteral(this);
         }
+
+        public override void Write(TextWriter writer)
+        {
+            if (Value == double.PositiveInfinity)
+                writer.Write("float('+inf')");
+            else if (Value == double.NegativeInfinity)
+                writer.Write("float('-inf')");
+            else
+            {
+                writer.Write(Value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
     }
 
     public class ImaginaryLiteral : Exp
     {
-        private double im;
-
         public ImaginaryLiteral(double im, string filename, int start, int end) : base(filename, start, end)
         {
-            this.im = im;
+            this.Value = im;
         }
+
+        public double Value { get; }
 
         public override T Accept<T>(IExpVisitor<T> v)
         {
@@ -315,6 +328,12 @@ namespace Pytocs.Syntax
         public override void Accept(IExpVisitor v)
         {
             v.VisitImaginaryLiteral(this);
+        }
+
+        public override void Write(TextWriter writer)
+        {
+            writer.Write(Value.ToString(CultureInfo.InvariantCulture));
+            writer.Write("j");
         }
     }
 
