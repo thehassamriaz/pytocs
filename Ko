@@ -1,0 +1,11 @@
+stack = []
+number = 12345
+n_str = str(number)
+for c in n_str:
+	stack.append(c)
+	
+rev_n = 0
+while stack != []:
+	rev_n = rev_n*10 + (int)(stack[-1])
+	del stack[-1]
+print rev_n
